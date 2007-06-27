@@ -1,0 +1,19 @@
+
+.menu {
+	border-right: solid 1px #666633;
+}
+
+.menu_title {
+	  font-size: 10pt; 
+      color: #000000; 
+      font-family: tahoma, inherit; 
+
+}
+
+.title {
+	background:url("images/title_bg.gif")  no-repeat  left  top;
+	font-size: 12pt; 
+    color: #000000; 
+    font-family: tahoma, inherit; 
+	font-weight: bold;
+}
