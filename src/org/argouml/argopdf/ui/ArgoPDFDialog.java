@@ -28,13 +28,15 @@ import org.argouml.configuration.Configuration;
 import org.tigris.swidgets.LabelledLayout;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
+import java.io.File;
+
 
 /**
  *
@@ -44,6 +46,15 @@ import java.io.*;
  * @version 0.1
  */
 public class ArgoPDFDialog extends JDialog {
+
+    public static String PDF = ".pdf";
+
+    public static String JPG  = ".jpg";
+    public static String JPEG = ".jpeg";
+    public static String GIF  = ".gif";
+    public static String PNG  = ".png";
+    public static String TIF  = ".tif";
+    public static String TIFF = ".tiff";
 
     //default size of the ArgoPDF dialof
     private static final Dimension DEFAULT_SIZE = new Dimension(640, 480);
@@ -62,6 +73,10 @@ public class ArgoPDFDialog extends JDialog {
     private JTextField title;
     //Field which contains author of the report
     private JTextField author;
+    //File chooser of the report
+    JFileChooser reportChooser;
+    //Logo chooser of the report
+    JFileChooser logoChooser;
 
     /**
      * ArgoPDF dialog constructor
@@ -122,6 +137,45 @@ public class ArgoPDFDialog extends JDialog {
         topConstraints.insets = new Insets(5, 5, 0, 5);
         topPanel.add(saveButton, topConstraints);
 
+        saveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+
+                if(reportChooser == null) {
+                    reportChooser = new JFileChooser();
+
+                    reportChooser.setFileFilter(new FileFilter() {
+                        public boolean accept(File file) {
+                            String path = file.getPath();
+                            if(file != null && file.isDirectory()) {
+                                return true;
+                            }
+                            if(path != null) {
+                                return path.toLowerCase().endsWith(PDF);
+                            }
+
+                            return false;
+                        }
+
+                        public String getDescription() {
+                            return "PDF Files(*.pdf)"; //todo translate or not?
+                        }
+                    });
+                }
+                int option = reportChooser.showSaveDialog(ArgoPDFDialog.this);
+                if (option == JFileChooser.APPROVE_OPTION) {
+                  if (reportChooser.getSelectedFile() != null) {
+                      String path = reportChooser.getSelectedFile().getPath();
+                      if(path.toLowerCase().endsWith(PDF)) {
+                          pathField.setText(path);
+                      } else {
+                          pathField.setText(path+PDF);
+                      }
+                  }
+                }                
+
+            }
+        });
+
         return topPanel;
     }
 
@@ -153,6 +207,12 @@ public class ArgoPDFDialog extends JDialog {
         bottomConstraints.insets = new Insets(3, 5, 3, 0);
         JButton generateButton = new JButton(Translator.localize("argopdf.dialog.tab.general.button.generate"));
         bottomPanel.add(generateButton, bottomConstraints);
+        generateButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(ArgoPDFDialog.this, "Will come soon! :)");
+                closeDialog();
+            }
+        });
 
         return bottomPanel;
     }
@@ -218,7 +278,53 @@ public class ArgoPDFDialog extends JDialog {
         constr.fill = GridBagConstraints.NONE;
         constr.gridwidth = GridBagConstraints.REMAINDER;
         constr.insets = new Insets(0, 5, 0, 0);
-        logoPanel.add(new JButton(". . ."), constr);
+        JButton logoPathBtn = new JButton(". . .");
+        logoPathBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+
+                if(logoChooser == null) {
+                    logoChooser = new JFileChooser();
+
+                    logoChooser.setFileFilter(new FileFilter() {
+                        public boolean accept(File file) {
+                            String path = file.getPath();
+                            if(file != null && file.isDirectory()) {
+                                return true;
+                            }
+                            if(path != null) {
+                                path = path.toLowerCase();
+
+                                return (path.endsWith(JPG)  ||
+                                        path.endsWith(JPEG) ||
+                                        path.endsWith(GIF)  ||
+                                        path.endsWith(PNG)  ||
+                                        path.endsWith(TIF)  ||
+                                        path.endsWith(TIFF));
+                            }
+
+                            return false;
+                        }
+
+                        public String getDescription() {
+                            return "Image files (*.jpg, *.jpeg, *.gif, *.png, *.tif, *.tiff)";
+                        }
+                    });
+                }
+                int option = logoChooser.showOpenDialog(ArgoPDFDialog.this);
+                if (option == JFileChooser.APPROVE_OPTION) {
+                  if (logoChooser.getSelectedFile() != null) {
+                      String path = logoChooser.getSelectedFile().getPath();
+
+                      if(path.endsWith(JPG) || path.endsWith(JPEG) || path.endsWith(GIF) ||
+                         path.endsWith(PNG) || path.endsWith(TIF) || path.endsWith(TIFF)) {
+                          logoPath.setText(logoChooser.getSelectedFile().getPath());
+                      }
+                  }
+                }
+
+            }
+        });
+        logoPanel.add(logoPathBtn, constr);
         
         constr.insets = new Insets(0, 0, 0, 0);
         JLabel label = new JLabel(Translator.localize("argopdf.dialog.tab.title.page.logo.image.note") + ":");
