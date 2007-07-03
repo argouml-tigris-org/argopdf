@@ -4,16 +4,29 @@
 }
 
 .menu_title {
-	  font-size: 10pt; 
+	font-size: 10pt; 
+      color: #000000; 
+      font-family: tahoma, inherit; 
+
+}
+
+.sub_menu_title {
+	font-size: 9pt; 
       color: #000000; 
       font-family: tahoma, inherit; 
 
 }
 
 .title {
-	background:url("images/title_bg.gif")  no-repeat  left  top;
 	font-size: 12pt; 
-    color: #000000; 
-    font-family: tahoma, inherit; 
+      color: #000000; 
+      font-family: tahoma, inherit; 
+	font-weight: bold;
+}
+
+.subtitle {
+	font-size: 11pt; 
+      color: #000000; 
+      font-family: tahoma, inherit; 
 	font-weight: bold;
 }

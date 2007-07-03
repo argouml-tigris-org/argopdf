@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <link rel="stylesheet" href="css/default.css" type="text/css" />
+    <title>ArgoPDF Documentation</title>
+</head>
+<body>
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" height="100%">
+        <tr height="60px">
+            <td colspan="3">
+                <img src="images/rgoPdf_title.gif" alt="ArgoPDF"/>
+            </td>
+        </tr>
+        <tr height="1px" width="100%">
+            <td colspan="3">
+                <hr width="100%" size="1" noshade color="#666633"/>
+            </td>
+        </tr>
+        <tr >
+            <td width="123px" valign="top" class="menu">
+                <table cellpadding="0" cellspacing="0" width="100%" border="0" class="menu_title">
+                    <tr>
+                        <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="index.html">Overview</a></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="introduction.html">Introduction</a></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="user_interface.html">User interface</a></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="report.html">Report</a></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="architecture.html">Architecture</a></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="api.html">API</a></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="glossary.html">Glossary</a></td>
+                    </tr>
+                </table>
+            </td>
+            <td height="100%" width="10px"></td>
+            <td valign="top" height="100%">
+                <table cellpadding="0" cellspacing="0" width="100%" border="0">
+                    <tr class="title" style=" background:url('images/title_bg.gif') no-repeat">
+                        <td valign="top">
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span><span>Report</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td valign="top">
+                        <p>
+                            This part describes the structure of the report.
+                        </p>
+                        <p>
+                            Generated report have next structure:
+                                <ol start="1">
+                                    <li>title page</li>
+                                    <li>table of contents</li>
+                                    <li>generated data of the corresponded ArgoUML project</li>
+                                </ol>
+                            </p>
+                            <p>Title page includes:
+                               <ul>
+                                    <li>Name of the ArgoUML project</li>
+                                    <li>Logo of the project (if it was selected by the user)</li>
+                                    <li>Author name</li>
+                               </ul>
+                            </p>
+                            <p>Table of contents includes:
+                                <ul>
+                                    <li>Names of chapters of the generated report</li>
+                                </ul>
+                            </p>
+                            <p>
+                               Generated data of the corresponded ArgoUML project includes:<br><br>
+                               This part of the report is under construction. Before defining which data can be included, 
+                               it is important to analyze and choose main components, subcomponents of the ArgoUML projects and so on.
+                               My simple preliminary analysis (Dzmitry Churbanau, June 2007) shows, that main part of the report should 
+                               include next components (the order of this components can be changed, some components can be removed and 
+                               new components can be added):
+                                <ol start="1">
+                                    <li>Use Case diagrams</li>
+                                    <li>Class diagrams</li>
+                                    <li>Sequence diagrams</li>
+                                    <li>Collaboration diagrams</li>
+                                    <li>Statechart diagrams</li>
+                                    <li>Activity diagrams</li>
+                                    <li>Deployment diagrams</li>
+                                    <li>Packages</li>
+                                </ol>
+                                <br>
+                                    Of course, all this components can include subcomponents.
+                            </p>
+                            <p>
+                                The suggestion of Linus Tolke about report structure is next:<br>
+                                <ol start="1">
+                                    <li>All Use Cases</li>
+                                    <li>Packages hierarchically with, for each package<br>
+                                        <ol type="a">
+                                            <li>Class diagrams with, for each class in the diagram<br>
+                                                <ol type="i">
+                                                    <li>Attributes and operations</li>
+                                                    <li>Statechart diagrams</li>
+                                                </ol>
+                                            </li>
+                                            <li>Object diagrams</li>
+                                            <li>Sequence and Collaborations diagrams in the order they appear</li>
+                                            <li>Activity diagrams</li>
+                                        </ol>
+                                    </li>
+                                    <li>All Deployment diagrams</li>
+                                </ol>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

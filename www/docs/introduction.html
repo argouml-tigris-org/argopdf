@@ -18,13 +18,28 @@
             </td>
         </tr>
         <tr >
-            <td width="110px" valign="top" class="menu">
+            <td width="123px" valign="top" class="menu">
                 <table cellpadding="0" cellspacing="0" width="100%" border="0" class="menu_title">
                     <tr>
                         <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="index.html">Overview</a></td>
                     </tr>
                     <tr>
-                        <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="introduction.html">Introduction</a></td>
+                        <td>
+                            <table cellpadding="0" cellspacing="0" width="100%" border="0">
+                                <tr>
+                                    <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="introduction.html">Introduction</a></td>
+                                </tr>
+                                <tr class="sub_menu_title">
+                                    <td>&nbsp;&nbsp;&nbsp;<img src="images/square_2.gif" align="absmiddle"/>&nbsp;<a href="introduction.html#development">The development</a></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="user_interface.html">User interface</a></td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="report.html">Report</a></td>
                     </tr>
                     <tr>
                         <td>&nbsp;<img src="images/square.gif" align="absmiddle"/>&nbsp;<a href="architecture.html">Architecture</a></td>
@@ -40,9 +55,9 @@
             <td height="100%" width="10px"></td>
             <td valign="top" height="100%">
                 <table cellpadding="0" cellspacing="0" width="100%" border="0">
-                    <tr class="title">
-                        <td>
-                            <img src="images/title_img.gif"/>&nbsp;<span>Introduction</span>
+                    <tr class="title" style=" background:url('images/title_bg.gif') no-repeat">
+                        <td valign="top">
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span>Introduction</span>
                         </td>
                     </tr>
                     <tr>
@@ -56,44 +71,10 @@
                                 This module is based on <a href="http://www.lowagie.com/iText/">iText</a> library. 
                             </p>
                             <p>
-                                Generated reports have next structure:
-                                <ol start="1">
-                                    <li>title page</li>
-                                    <li>table of contents</li>
-                                    <li>generated data of the corresponded ArgoUML project</li>
-                                </ol>
-                            </p>
-                            <p>Title page includes:
-                               <ul>
-                                    <li>Name of the ArgoUML project</li>
-                                    <li>Logo of the project (if it was selected by the user)</li>
-                               </ul>
-                            </p>
-                            <p>Table of contents includes:
-                                <ul>
-                                    <li>Names of chapters of the generated report</li>
-                                </ul>
+                                &nbsp;<a name="development"><img src="images/title_img.gif"/></a>&nbsp;<span class="subtitle">The development of ArgoPDF</span>
                             </p>
                             <p>
-                               Generated data of the corresponded ArgoUML project includes:<br><br>
-                               This part of the report is under construction. Before defining which data can be included, 
-                               it is important to analyze and choose main components, subcomponents of the ArgoUML projects and so on.
-                               <br>
-                               My simple preliminary analysis (Dzmitry Churbanau, June 2007) shows, that main part of the report should 
-                               include next components (the order of this components can be changed, some components can be removed and 
-                               new components can be added):
-                                <ol start="1">
-                                    <li>Use Case diagrams</li>
-                                    <li>Class diagrams</li>
-                                    <li>Sequence diagrams</li>
-                                    <li>Collaboration diagrams</li>
-                                    <li>Statechart diagrams</li>
-                                    <li>Activity diagrams</li>
-                                    <li>Deployment diagrams</li>
-                                    <li>Packages</li>
-                                </ol>
-                                <br>
-                                    Of course, all this components can include subcomponents.
+                                ArgoPDF is developed by Dzmitry Churbanau during the <a href="http://code.google.com/soc">Google Summer of Code 2007</a> under the steerage of his mentor Ion Saving.
                             </p>
                         </td>
                     </tr>
