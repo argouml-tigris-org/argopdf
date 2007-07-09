@@ -38,7 +38,7 @@ import java.awt.event.ActionEvent;
  * This class manages enabling, disabling and identifying the ArgoPDF module
  *
  * @author Dzmitry Churbanau
- * @since 0.1
+ * @version 1.0
  */
 public class ArgoPDFMenuPlugin implements ModuleInterface, ActionListener {
 

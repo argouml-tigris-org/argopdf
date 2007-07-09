@@ -24,8 +24,16 @@
 package org.argouml.argopdf.ui;
 
 import org.argouml.i18n.Translator;
-import org.argouml.configuration.Configuration;
+import org.argouml.kernel.ProjectManager;
+import org.argouml.kernel.Project;
+import org.argouml.kernel.MemberList;
+import org.argouml.model.*;
+import org.argouml.ui.explorer.rules.GoModelToNode;
+import org.argouml.ui.explorer.rules.GoModelToElements;
+import org.argouml.ui.explorer.rules.GoModelToDiagrams;
+import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
 import org.tigris.swidgets.LabelledLayout;
+import org.omg.uml.UmlPackage;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -35,15 +43,20 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.Collection;
+import java.util.Vector;
+import java.util.Iterator;
 
 
 /**
  *
- * The dialog displayed when ArgoPDF is started from the ArgoUML menu.
+ * The dialog is displayed when ArgoPDF is started from the ArgoUML menu.
  *
  * @author Dzmitry Churbanau
- * @version 0.1
+ * @version 1.0
  */
 public class ArgoPDFDialog extends JDialog {
 
@@ -210,6 +223,18 @@ public class ArgoPDFDialog extends JDialog {
         generateButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JOptionPane.showMessageDialog(ArgoPDFDialog.this, "Will come soon! :)");
+
+/*                Project currentProject = ProjectManager.getManager().getCurrentProject();
+                Vector diagrams = currentProject.getDiagrams();
+                Iterator iter = diagrams.iterator();
+                while(iter.hasNext()) {
+                    Object diagram = iter.next();
+
+                    if(diagram instanceof UMLUseCaseDiagram) {
+                        System.out.println("ArgoPDFDialog.actionPerformed diagram = '"+diagram+"'");
+                    }
+                }*/
+
                 closeDialog();
             }
         });
@@ -229,7 +254,7 @@ public class ArgoPDFDialog extends JDialog {
 
         JPanel optionsPanel = new JPanel();
         optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
-        optionsPanel.setBorder(new TitledBorder(Translator.localize("argopdf.dialog.tab.general.options.title")));
+        optionsPanel.setBorder(new TitledBorder(org.argouml.cognitive.Translator.localize("argopdf.dialog.tab.general.options.title")));
         optionsPanel.setMaximumSize(new Dimension(DEFAULT_SIZE.width/3, 1000));
         optionsPanel.setMinimumSize(new Dimension(DEFAULT_SIZE.width/3, DEFAULT_SIZE.height));
 
@@ -240,11 +265,10 @@ public class ArgoPDFDialog extends JDialog {
         optionsPanel.add(generateDiagrams);
         tab.add(optionsPanel);
 
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
-        DefaultTreeModel treeModel = new DefaultTreeModel(root);
-        JTree reportContents = new JTree(treeModel);
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.getViewport().add(reportContents);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        scrollPane.getViewport().add(createTreeOfContentsArea());
+        scrollPane.setBackground(Color.WHITE);
         tab.add(scrollPane);
 
         return tab;
@@ -349,6 +373,34 @@ public class ArgoPDFDialog extends JDialog {
 	    tab.add(top, BorderLayout.NORTH);
 
         return tab;
+    }
+
+    /**
+     * Creates tree of the project data, which can be included in the report
+     *
+     * @return tree for the contents area of the dialog window
+     */
+    private JTree createTreeOfContentsArea() {
+
+        Project currentProject = ProjectManager.getManager().getCurrentProject();
+        Vector diagrams = currentProject.getDiagrams();
+        Iterator iter = diagrams.iterator();
+
+        TreeNode node = new TreeNode(currentProject);
+
+        while(iter.hasNext()) {
+            Object diagram = iter.next();
+            if(diagram instanceof UMLUseCaseDiagram) {
+                node.add(new TreeNode(diagram));
+            }
+        }
+
+        JTree tree = new JTree(node);
+        tree.setCellRenderer(new TreeRenderer());
+        tree.addMouseListener(new TreeNodeSelectionListener(tree));
+        tree.setShowsRootHandles(true);
+
+        return tree;
     }
 
     /**
