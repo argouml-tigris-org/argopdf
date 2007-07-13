@@ -59,25 +59,21 @@ public class TreeRenderer extends JPanel implements TreeCellRenderer {
         //todo experimentation; must be reimplemented
         Object userObject = ((TreeNode)value).getUserObject();
         String stringValue = "undefined value";
+        Icon icon = null;
         if(userObject instanceof Project) {
-            stringValue = ((Project)userObject).getBaseName();
             Object model = ((Project)userObject).getModel();
-            if(model != null) {
-                Icon icon = ResourceLoaderWrapper.getInstance().lookupIcon(model);
-                if (icon != null) {
-                    label.setIcon(icon);
-                }
-            }
+            stringValue = Model.getFacade().getName(model);
+            icon = ResourceLoaderWrapper.getInstance().lookupIcon(model);
         } else {
             if(userObject instanceof UMLUseCaseDiagram) {
                 stringValue = ((UMLUseCaseDiagram)userObject).getName();
-                Icon icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject);
-                if (icon != null) {
-                    label.setIcon(icon);
-                }
+                icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject);
             }
         }
 
+        if (icon != null) {
+            label.setIcon(icon);
+        }
         check.setSelected(((TreeNode) value).isSelected());
         label.setText(stringValue);
         

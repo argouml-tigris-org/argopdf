@@ -29,6 +29,7 @@ import org.argouml.ui.ProjectBrowser;
 import org.argouml.ui.ArgoFrame;
 import org.apache.log4j.Logger;
 import org.argouml.argopdf.ui.ArgoPDFDialog;
+import org.argouml.kernel.ProjectManager;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -53,6 +54,10 @@ public class ArgoPDFMenuPlugin implements ModuleInterface, ActionListener {
     private JMenuItem menuItem;
 
     private ArgoPDFDialog argoPDFDialog;
+
+    public static String ARGO_PDF_NAME = "ArgoPDF";
+    public static String ARGO_PDF_VERSION = "0.1";
+    public static String ARGO_PDF_AUTHOR = "Dzmitry Churbanau";
 
     /**
      *  Class constructor.
@@ -91,7 +96,7 @@ public class ArgoPDFMenuPlugin implements ModuleInterface, ActionListener {
      * @see org.argouml.moduleloader.ModuleInterface#getName()
      */
     public String getName() {
-        return "ArgoPDF";
+        return ARGO_PDF_NAME;
     }
 
     /**
@@ -100,11 +105,11 @@ public class ArgoPDFMenuPlugin implements ModuleInterface, ActionListener {
     public String getInfo(int type) {
         switch (type) {
             case DESCRIPTION:
-                return "This module is a report generator tool.";
+                return "This module is a pdf report generator tool";
             case AUTHOR:
-                return "Dzmitry Churbanau";
+                return ARGO_PDF_AUTHOR;
             case VERSION:
-                return "0.1";
+                return ARGO_PDF_VERSION;
             default:
                 return null;
         }
@@ -119,6 +124,8 @@ public class ArgoPDFMenuPlugin implements ModuleInterface, ActionListener {
      */
     public void actionPerformed(ActionEvent event) {
         LOG.info("Showing ArgoPDF Dialog");
+        argoPDFDialog.setCurrentProject(ProjectManager.getManager().getCurrentProject());
+        argoPDFDialog.fillTreeScrollPane();
         argoPDFDialog.setVisible(true);
     }
 }

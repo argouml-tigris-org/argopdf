@@ -26,27 +26,18 @@ package org.argouml.argopdf.ui;
 import org.argouml.i18n.Translator;
 import org.argouml.kernel.ProjectManager;
 import org.argouml.kernel.Project;
-import org.argouml.kernel.MemberList;
-import org.argouml.model.*;
-import org.argouml.ui.explorer.rules.GoModelToNode;
-import org.argouml.ui.explorer.rules.GoModelToElements;
-import org.argouml.ui.explorer.rules.GoModelToDiagrams;
 import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
+import org.argouml.argopdf.kernel.PdfReport;
+import org.argouml.argopdf.kernel.IReport;
 import org.tigris.swidgets.LabelledLayout;
-import org.omg.uml.UmlPackage;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
 import java.io.File;
-import java.util.Collection;
 import java.util.Vector;
 import java.util.Iterator;
 
@@ -86,6 +77,10 @@ public class ArgoPDFDialog extends JDialog {
     private JTextField title;
     //Field which contains author of the report
     private JTextField author;
+    //Component which contains tree of report contents 
+    private JScrollPane scrollPane;
+    //Represents current ArgoUML project
+    private Project currentProject;
     //File chooser of the report
     JFileChooser reportChooser;
     //Logo chooser of the report
@@ -99,6 +94,10 @@ public class ArgoPDFDialog extends JDialog {
     public ArgoPDFDialog(Frame parent, String title, boolean modal) {
         super(parent, title, modal);
         initComponents();
+    }
+
+    public void setCurrentProject(Project project) {
+        this.currentProject = project;
     }
 
     /**
@@ -222,20 +221,30 @@ public class ArgoPDFDialog extends JDialog {
         bottomPanel.add(generateButton, bottomConstraints);
         generateButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(ArgoPDFDialog.this, "Will come soon! :)");
+                
+                IReport report = new PdfReport();
+                setOptions(report);
+                String result = report.generateReport();
+                if(result != null) {
+                    JOptionPane.showMessageDialog(ArgoPDFDialog.this, result);
+                    return;
+                }
 
-/*                Project currentProject = ProjectManager.getManager().getCurrentProject();
-                Vector diagrams = currentProject.getDiagrams();
-                Iterator iter = diagrams.iterator();
-                while(iter.hasNext()) {
-                    Object diagram = iter.next();
-
-                    if(diagram instanceof UMLUseCaseDiagram) {
-                        System.out.println("ArgoPDFDialog.actionPerformed diagram = '"+diagram+"'");
-                    }
-                }*/
+                //todo translate
+                JOptionPane.showMessageDialog(ArgoPDFDialog.this, "Report was generated");
 
                 closeDialog();
+            }
+
+            private void setOptions(IReport report) {
+                report.setPath(pathField.getText());
+                report.setTitle(title.getText());
+                report.setAuthor(author.getText());
+                report.setLogoPath(logoPath.getText());
+
+                report.setGenerateTitlePage(generateTitlePage.isSelected());
+                report.setGenerateTableOfContents(generateToC.isSelected());
+                report.setGenerateDiagrams(generateDiagrams.isSelected());
             }
         });
 
@@ -265,14 +274,24 @@ public class ArgoPDFDialog extends JDialog {
         optionsPanel.add(generateDiagrams);
         tab.add(optionsPanel);
 
-        JScrollPane scrollPane = new JScrollPane();
+        scrollPane = new JScrollPane();
         scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        scrollPane.getViewport().add(createTreeOfContentsArea());
         scrollPane.setBackground(Color.WHITE);
+        fillTreeScrollPane();
         tab.add(scrollPane);
 
         return tab;
     }
+
+    /**
+     * Creates new tree of report contents and tie it with scroll pane
+     */
+    public void fillTreeScrollPane() {
+        //prevent of too early creation
+        if(scrollPane == null) return;
+        scrollPane.getViewport().add(createTreeOfContentsArea());
+    }
+
 
     /**
      * Creates one of the tabs ('Title page' tab) where user can select options of the title page
@@ -382,7 +401,11 @@ public class ArgoPDFDialog extends JDialog {
      */
     private JTree createTreeOfContentsArea() {
 
-        Project currentProject = ProjectManager.getManager().getCurrentProject();
+        if(this.currentProject == null) {
+            this.currentProject = ProjectManager.getManager().getCurrentProject();
+        }
+
+        Project currentProject = this.currentProject;
         Vector diagrams = currentProject.getDiagrams();
         Iterator iter = diagrams.iterator();
 
@@ -407,6 +430,7 @@ public class ArgoPDFDialog extends JDialog {
      * Closes dialog
      */
     private void closeDialog() {
+
         this.setVisible(false);
     }
 }
