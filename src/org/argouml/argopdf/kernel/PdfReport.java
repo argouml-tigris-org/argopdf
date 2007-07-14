@@ -27,14 +27,15 @@ import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.BaseFont;
-import com.sun.java.util.jar.pack.*;
 
 import javax.swing.*;
 import javax.swing.tree.TreeModel;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 
 import org.argouml.ui.argopdf.ArgoPDFMenuPlugin;
+import org.argouml.i18n.Translator;
 import org.apache.log4j.Logger;
 
 /**
@@ -48,9 +49,9 @@ import org.apache.log4j.Logger;
  */
 public class PdfReport implements IReport {
 
-    private boolean generateTitlePage = true;
+    private boolean generateTitlePage       = true;
     private boolean generateTableOfContents = true;
-    private boolean generateDiagrams = true;
+    private boolean generateDiagrams        = true;
 
     private String path;
     private String logoPath;
@@ -64,40 +65,40 @@ public class PdfReport implements IReport {
     public String generateReport() {
 
         if(path == null || "".equals(path)) {
-            //todo Should be translated
-            return "Please specify the path to the report.";
+            LOG.debug("Report path is not specified");
+            return Translator.localize("argopdf.report.error.file.path.is.not.specified");
         }
 
         if(getLogoPath() != null && !"".equals(getLogoPath())) {
             try {
                 Image.getInstance(getLogoPath());
             } catch(Exception ex) {
-                //todo Should be translated
-                return "Please specify correct path to the report logo.";
+                LOG.debug("Report image path is incorrect");
+                return Translator.localize("argopdf.report.error.image.logo.path.is.not.specified");
             }
         }
 
         Document document = new Document();
 
+        PdfWriter writer;
         try {
-            PdfWriter writer = PdfWriter.getInstance(document,new FileOutputStream(path));
-
-            generateMetadata(document);
-            document.open();
-            if(generateTitlePage) {
-                generateTitlePage(document, writer);
-            }
-
-            if(generateDiagrams) {
-                generateUseCaseDiagrams();
-            }
+            writer = PdfWriter.getInstance(document,new FileOutputStream(path));
         } catch(DocumentException ex) {
-            //todo correct
-            return "DocumentException; message: "+ex.getMessage();
-        } catch(IOException ex) {
-            //todo correct; Should be transalted
-            return "Unknown exception";
+            LOG.debug("Can not create an instance of PdfWriter class.");
+            return Translator.localize("argopdf.report.error.file.is.used.by.another.application");
+        } catch(FileNotFoundException ex) {
+            LOG.debug(ex.getMessage());
+            return Translator.localize("argopdf.report.error.unknown");
         }
+
+        generateMetadata(document);
+        document.open();
+        if(generateTitlePage) {
+            generateTitlePage(document, writer);
+        }
+
+        generateUseCaseDiagrams();
+            
         document.close();
 
         return null;
@@ -106,7 +107,8 @@ public class PdfReport implements IReport {
     private void generateTitlePage(Document document, PdfWriter writer) {
 
         try {
-
+            boolean addLogoImage = false;
+            float imageHeight = 0;
             if(getLogoPath() != null && !"".equals(getLogoPath())) {
                 Image im = null;
                 try {
@@ -116,24 +118,38 @@ public class PdfReport implements IReport {
                     LOG.debug(ex.getMessage());
                 }
                 document.add(im);
+                addLogoImage = true;
+                imageHeight  = (im != null ? im.plainHeight() : 0);
             }
 
             if(getLogoPath() == null || "".equals(getLogoPath())) {
                 document.add(new Chunk(' '));
+                imageHeight += 12;
             }
 
             Paragraph paragraph = new Paragraph(getTitle(), new Font(Font.UNDEFINED, 25, Font.BOLD));
-            paragraph.setSpacingBefore(150);
+            //Sets before spacing, which depends, whether logo image was added to the report or not
+            if(addLogoImage) {
+                if(imageHeight >= 200) {
+                    paragraph.setSpacingBefore(10);
+                } else {
+                    paragraph.setSpacingBefore(200 - imageHeight);
+                }
+            } else {
+                paragraph.setSpacingBefore(200);
+            }
             paragraph.setAlignment(Element.ALIGN_CENTER);
             document.add(paragraph);
-
 
             PdfContentByte cb = writer.getDirectContent();
             cb.saveState();
             cb.beginText();
-            cb.moveText(document.left() + (PageSize.A4.width() - getAuthor().length() * 12) / 2, 100);
+
             BaseFont bf = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
+
+            cb.moveText((PageSize.A4.width() - bf.getWidthPoint(getAuthor(), 12)) / 2, 100);
             cb.setFontAndSize(bf, 12);
+
             cb.showText(getAuthor());
             cb.endText();
             cb.restoreState();
@@ -150,7 +166,7 @@ public class PdfReport implements IReport {
     private void generateUseCaseDiagrams() {
         if(reportTree != null) {
             TreeModel model = reportTree.getModel();
-            System.out.println("PdfReport.generateUseCaseDiagrams model = '"+model+"'");
+            //System.out.println("PdfReport.generateUseCaseDiagrams model = '"+model+"'");
         }
 
     }
@@ -164,8 +180,7 @@ public class PdfReport implements IReport {
     private void generateMetadata(Document document) {
         document.addTitle(title);
         document.addAuthor(author);
-        //todo should be translated
-        document.addSubject("Report");
+        document.addSubject(Translator.localize("argopdf.report.metadata.subject"));
         document.addCreator(ArgoPDFMenuPlugin.ARGO_PDF_NAME + " " + ArgoPDFMenuPlugin.ARGO_PDF_VERSION);
     }
 
