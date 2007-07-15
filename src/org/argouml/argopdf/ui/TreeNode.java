@@ -31,7 +31,7 @@ import java.util.Enumeration;
  * area on the 'General' tab in the ArgoPDF dialog
  *
  * @author Dzmitry Churbanau
- * @version 1.0
+ * @version 0.1
  */
 public class TreeNode extends DefaultMutableTreeNode {
 

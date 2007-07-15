@@ -27,24 +27,33 @@ import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.codec.GifImage;
 
 import javax.swing.*;
-import javax.swing.tree.TreeModel;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.FileNotFoundException;
+import java.io.*;
 
 import org.argouml.ui.argopdf.ArgoPDFMenuPlugin;
+import org.argouml.ui.targetmanager.TargetManager;
 import org.argouml.i18n.Translator;
+import org.argouml.argopdf.ui.TreeNode;
+import org.argouml.uml.UseCases;
+import org.argouml.uml.ui.SaveGraphicsManager;
+import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
+import org.argouml.kernel.Project;
+import org.argouml.kernel.ProjectManager;
+import org.argouml.configuration.Configuration;
 import org.apache.log4j.Logger;
+import org.tigris.gef.base.Diagram;
+import org.tigris.gef.base.SaveGraphicsAction;
+import org.tigris.gef.util.Util;
 
 /**
  * PdfReport represents the implementation of IReport interface by using
  * <a href="http://www.lowagie.com/iText/">iText</a> free open source library.
  *
  *
- * @author Dima
- * @version 1.0
+ * @author Dzmitry Churbanau
+ * @version 0.1
  * @see org.argouml.argopdf.kernel.IReport
  */
 public class PdfReport implements IReport {
@@ -62,6 +71,12 @@ public class PdfReport implements IReport {
 
     private static final Logger LOG = Logger.getLogger(PdfReport.class);
 
+    private Document document;
+
+    /**
+     * Generates report and saves it to the path specified bu the user
+     * @return null if report was generated successfully, otherwise error message
+     */
     public String generateReport() {
 
         if(path == null || "".equals(path)) {
@@ -78,7 +93,7 @@ public class PdfReport implements IReport {
             }
         }
 
-        Document document = new Document();
+        document = new Document();
 
         PdfWriter writer;
         try {
@@ -91,10 +106,10 @@ public class PdfReport implements IReport {
             return Translator.localize("argopdf.report.error.unknown");
         }
 
-        generateMetadata(document);
+        generateMetadata();
         document.open();
         if(generateTitlePage) {
-            generateTitlePage(document, writer);
+            generateTitlePage(writer);
         }
 
         generateUseCaseDiagrams();
@@ -104,7 +119,12 @@ public class PdfReport implements IReport {
         return null;
     }
 
-    private void generateTitlePage(Document document, PdfWriter writer) {
+    /**
+     * Generates title page of the report
+     *
+     * @param writer an instance of <i>PdfWriter</i> object of current document
+     */
+    private void generateTitlePage(PdfWriter writer) {
 
         try {
             boolean addLogoImage = false;
@@ -141,19 +161,16 @@ public class PdfReport implements IReport {
             paragraph.setAlignment(Element.ALIGN_CENTER);
             document.add(paragraph);
 
+            //Sets the author of the report in the absolute position on the title page
             PdfContentByte cb = writer.getDirectContent();
             cb.saveState();
             cb.beginText();
-
             BaseFont bf = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
-
             cb.moveText((PageSize.A4.width() - bf.getWidthPoint(getAuthor(), 12)) / 2, 100);
             cb.setFontAndSize(bf, 12);
-
             cb.showText(getAuthor());
             cb.endText();
             cb.restoreState();
-            
 
         } catch(DocumentException ex) {
             LOG.debug(ex.getMessage());
@@ -163,25 +180,98 @@ public class PdfReport implements IReport {
 
     }
 
+    /**
+     * Generates use case diagrams, which was selected by the user
+     */
     private void generateUseCaseDiagrams() {
         if(reportTree != null) {
-            TreeModel model = reportTree.getModel();
-            //System.out.println("PdfReport.generateUseCaseDiagrams model = '"+model+"'");
-        }
+            TreeNode root = (TreeNode)reportTree.getModel().getRoot();
+            if(root.isSelected()) {
+                TreeNode node = (TreeNode)root.getFirstChild();
 
+                //process this node only if it is a folder, which contains all
+                //use case diagrams and it is selected
+                if(node != null && (node.getUserObject() instanceof UseCases) && node.isSelected()) {
+
+                    TreeNode useCaseDiagramNode = (TreeNode)node.getFirstChild();
+                    Font font = new Font(Font.HELVETICA, 15, Font.BOLD);
+                    //todo translate
+                    Chapter useCaseChapter = new Chapter(new Paragraph("Use Case diagrams", font), 1);
+                    boolean addUseCase = false;
+                    while(useCaseDiagramNode != null) {
+                        if(useCaseDiagramNode.isSelected()) {
+                            Object useCase = useCaseDiagramNode.getUserObject();
+                            if(useCase instanceof UMLUseCaseDiagram) {
+                                addUseCaseDiagram(useCaseChapter, (UMLUseCaseDiagram)useCase);
+                                addUseCase = true;
+                            }
+                        }
+                        useCaseDiagramNode = (TreeNode)useCaseDiagramNode.getNextSibling();
+                    }
+
+                    if(addUseCase) {
+                        try {
+                            document.add(useCaseChapter);
+                        } catch(DocumentException ex) {
+                            LOG.debug(ex.getMessage());
+                        }
+                    }
+
+                }
+
+            }
+        }
     }
 
     /**
      * Generates metadata of the report. This method should be called before
      * instance of the <i>Document</i> class will be called.
-     *
-     * @param document current instance of the report.
      */
-    private void generateMetadata(Document document) {
+    private void generateMetadata() {
         document.addTitle(title);
         document.addAuthor(author);
         document.addSubject(Translator.localize("argopdf.report.metadata.subject"));
         document.addCreator(ArgoPDFMenuPlugin.ARGO_PDF_NAME + " " + ArgoPDFMenuPlugin.ARGO_PDF_VERSION);
+    }
+
+    /**
+     * Adds Use Case diagram to the report.
+     *
+     * @param chapter chapter of Use Case diagrams
+     * @param diagram Use Case diagram to add to the report
+     */
+    private void addUseCaseDiagram(Chapter chapter, UMLUseCaseDiagram diagram) {
+        //todo Manage Out of memmory exception
+        if(diagram == null) return;
+        LOG.debug("add Use Case diagram: " + diagram.getName());
+        TargetManager tm = TargetManager.getInstance();
+        tm.setTarget(diagram);
+
+        Section section = chapter.addSection(diagram.getName(), 2);
+/*
+        String defaultName = diagram.getName();
+        defaultName = Util.stripJunk(defaultName);
+*/
+
+//        Project p =  ProjectManager.getManager().getCurrentProject();
+//        SaveGraphicsManager sgm = SaveGraphicsManager.getInstance();
+        SaveGraphicsAction cmd = SaveGraphicsManager.getInstance().getSaveActionBySuffix("gif");
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        cmd.setStream(outputStream);
+        cmd.setScale(Configuration.getInteger(SaveGraphicsManager.KEY_GRAPHICS_RESOLUTION, 1));
+        cmd.actionPerformed(null);
+
+        try {
+            GifImage im = new GifImage(outputStream.toByteArray());
+            section.add(im.getImage(1));
+            outputStream.close();
+        } catch(Exception ex) {
+            System.out.println("PdfReport.addUseCaseDiagram ex = '"+ex.getMessage()+"'");
+            ex.printStackTrace(System.out);
+        }
+
+        section.add(Chunk.NEWLINE);
     }
 
     public void setTree(JTree tree) {

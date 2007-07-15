@@ -27,6 +27,7 @@ import org.argouml.i18n.Translator;
 import org.argouml.kernel.ProjectManager;
 import org.argouml.kernel.Project;
 import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
+import org.argouml.uml.UseCases;
 import org.argouml.argopdf.kernel.PdfReport;
 import org.argouml.argopdf.kernel.IReport;
 import org.tigris.swidgets.LabelledLayout;
@@ -47,7 +48,7 @@ import java.util.Iterator;
  * The dialog is displayed when ArgoPDF is started from the ArgoUML menu.
  *
  * @author Dzmitry Churbanau
- * @version 1.0
+ * @version 0.1
  */
 public class ArgoPDFDialog extends JDialog {
 
@@ -81,6 +82,8 @@ public class ArgoPDFDialog extends JDialog {
     private JScrollPane scrollPane;
     //Represents current ArgoUML project
     private Project currentProject;
+    //Represents report contents tree
+    private JTree tree;
     //File chooser of the report
     JFileChooser reportChooser;
     //Logo chooser of the report
@@ -158,14 +161,11 @@ public class ArgoPDFDialog extends JDialog {
                     reportChooser.setFileFilter(new FileFilter() {
                         public boolean accept(File file) {
                             String path = file.getPath();
-                            if(file != null && file.isDirectory()) {
+                            if(file.isDirectory()) {
                                 return true;
                             }
-                            if(path != null) {
-                                return path.toLowerCase().endsWith(PDF);
-                            }
 
-                            return false;
+                            return (path != null && path.toLowerCase().endsWith(PDF));
                         }
 
                         public String getDescription() {
@@ -230,8 +230,7 @@ public class ArgoPDFDialog extends JDialog {
                     return;
                 }
 
-                //todo translate
-                JOptionPane.showMessageDialog(ArgoPDFDialog.this, "Report was generated");
+                JOptionPane.showMessageDialog(ArgoPDFDialog.this, Translator.localize("argopdf.report.message.report.generated"));
 
                 closeDialog();
             }
@@ -245,6 +244,7 @@ public class ArgoPDFDialog extends JDialog {
                 report.setGenerateTitlePage(generateTitlePage.isSelected());
                 report.setGenerateTableOfContents(generateToC.isSelected());
                 report.setGenerateDiagrams(generateDiagrams.isSelected());
+                report.setTree(tree);
             }
         });
 
@@ -331,7 +331,7 @@ public class ArgoPDFDialog extends JDialog {
                     logoChooser.setFileFilter(new FileFilter() {
                         public boolean accept(File file) {
                             String path = file.getPath();
-                            if(file != null && file.isDirectory()) {
+                            if(file.isDirectory()) {
                                 return true;
                             }
                             if(path != null) {
@@ -411,14 +411,17 @@ public class ArgoPDFDialog extends JDialog {
 
         TreeNode node = new TreeNode(currentProject);
 
+        TreeNode useCaseFolderNode = new TreeNode(new UseCases());
         while(iter.hasNext()) {
             Object diagram = iter.next();
             if(diagram instanceof UMLUseCaseDiagram) {
-                node.add(new TreeNode(diagram));
+                useCaseFolderNode.add(new TreeNode(diagram));
             }
         }
+        node.add(useCaseFolderNode);
+        node.add(new TreeNode(new UMLUseCaseDiagram()));
 
-        JTree tree = new JTree(node);
+        tree = new JTree(node);
         tree.setCellRenderer(new TreeRenderer());
         tree.addMouseListener(new TreeNodeSelectionListener(tree));
         tree.setShowsRootHandles(true);

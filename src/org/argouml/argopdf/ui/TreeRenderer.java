@@ -27,6 +27,8 @@ import org.argouml.kernel.Project;
 import org.argouml.model.Model;
 import org.argouml.application.helpers.ResourceLoaderWrapper;
 import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
+import org.argouml.uml.UseCases;
+import org.argouml.i18n.Translator;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -37,7 +39,7 @@ import java.awt.*;
  * TreeRenderer is the implementation of a TreeCellRenderer for a TreeNode
  *
  * @author Dzmitry Churbanau
- * @version 1.0
+ * @version 0.1
  */
 public class TreeRenderer extends JPanel implements TreeCellRenderer {
 
@@ -65,6 +67,10 @@ public class TreeRenderer extends JPanel implements TreeCellRenderer {
             stringValue = Model.getFacade().getName(model);
             icon = ResourceLoaderWrapper.getInstance().lookupIcon(model);
         } else {
+            if(userObject instanceof UseCases) {
+                stringValue = Translator.localize("argopdf.dialog.tab.general.tree.usecases");
+                icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject); 
+            }
             if(userObject instanceof UMLUseCaseDiagram) {
                 stringValue = ((UMLUseCaseDiagram)userObject).getName();
                 icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject);

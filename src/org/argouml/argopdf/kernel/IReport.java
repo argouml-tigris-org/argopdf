@@ -50,7 +50,7 @@ import javax.swing.*;
  * message should be shown to the user.
  *
  * @author Dzmitry Churbanau
- * @version 1.0
+ * @version 0.1
  */
 public interface IReport {
 

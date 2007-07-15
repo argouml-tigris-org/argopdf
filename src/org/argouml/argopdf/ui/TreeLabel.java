@@ -30,7 +30,7 @@ import java.awt.*;
  * Represents a label with a predefined image for the TreeNode
  *
  * @author Dzmitry Churbanau
- * @version 1.0
+ * @version 0.1
  */
 public class TreeLabel extends JLabel {
 

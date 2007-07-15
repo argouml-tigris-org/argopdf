@@ -33,7 +33,7 @@ import java.awt.event.MouseEvent;
  * Represents mouse listener for the TreeNode
  *
  * @author Dzmitry Churbanau
- * @version 1.0
+ * @version 0.1
  */
 public class TreeNodeSelectionListener extends MouseAdapter {
     
