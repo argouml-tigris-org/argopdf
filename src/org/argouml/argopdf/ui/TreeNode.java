@@ -30,7 +30,7 @@ import java.util.Enumeration;
  * TreeNode is a part of a report contents tree, which is displayed in the contents
  * area on the 'General' tab in the ArgoPDF dialog
  *
- * @author Dzmitry Churbanau
+ * @author Dmitry Churbanau
  * @version 0.1
  */
 public class TreeNode extends DefaultMutableTreeNode {

@@ -38,7 +38,7 @@ import java.awt.*;
 /**
  * TreeRenderer is the implementation of a TreeCellRenderer for a TreeNode
  *
- * @author Dzmitry Churbanau
+ * @author Dmitry Churbanau
  * @version 0.1
  */
 public class TreeRenderer extends JPanel implements TreeCellRenderer {

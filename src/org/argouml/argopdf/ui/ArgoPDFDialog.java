@@ -47,7 +47,7 @@ import java.util.Iterator;
  *
  * The dialog is displayed when ArgoPDF is started from the ArgoUML menu.
  *
- * @author Dzmitry Churbanau
+ * @author Dmitry Churbanau
  * @version 0.1
  */
 public class ArgoPDFDialog extends JDialog {
@@ -419,7 +419,6 @@ public class ArgoPDFDialog extends JDialog {
             }
         }
         node.add(useCaseFolderNode);
-        node.add(new TreeNode(new UMLUseCaseDiagram()));
 
         tree = new JTree(node);
         tree.setCellRenderer(new TreeRenderer());

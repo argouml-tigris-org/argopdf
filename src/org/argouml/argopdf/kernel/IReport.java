@@ -49,7 +49,7 @@ import javax.swing.*;
  * calling <i>setPath(String path)</i> method. If path will not be defined, report will not be generated and error
  * message should be shown to the user.
  *
- * @author Dzmitry Churbanau
+ * @author Dmitry Churbanau
  * @version 0.1
  */
 public interface IReport {

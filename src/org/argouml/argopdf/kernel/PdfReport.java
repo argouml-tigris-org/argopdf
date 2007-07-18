@@ -27,32 +27,27 @@ import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.BaseFont;
-import com.lowagie.text.pdf.codec.GifImage;
+import com.lowagie.text.pdf.PdfPTable;
 
 import javax.swing.*;
 import java.io.*;
+import java.util.HashMap;
+import java.util.Enumeration;
 
 import org.argouml.ui.argopdf.ArgoPDFMenuPlugin;
 import org.argouml.ui.targetmanager.TargetManager;
 import org.argouml.i18n.Translator;
 import org.argouml.argopdf.ui.TreeNode;
 import org.argouml.uml.UseCases;
-import org.argouml.uml.ui.SaveGraphicsManager;
 import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
-import org.argouml.kernel.Project;
-import org.argouml.kernel.ProjectManager;
-import org.argouml.configuration.Configuration;
 import org.apache.log4j.Logger;
-import org.tigris.gef.base.Diagram;
-import org.tigris.gef.base.SaveGraphicsAction;
-import org.tigris.gef.util.Util;
 
 /**
  * PdfReport represents the implementation of IReport interface by using
  * <a href="http://www.lowagie.com/iText/">iText</a> free open source library.
  *
  *
- * @author Dzmitry Churbanau
+ * @author Dmitry Churbanau
  * @version 0.1
  * @see org.argouml.argopdf.kernel.IReport
  */
@@ -70,6 +65,7 @@ public class PdfReport implements IReport {
     private JTree reportTree;
 
     private static final Logger LOG = Logger.getLogger(PdfReport.class);
+    private HashMap options = new HashMap();
 
     private Document document;
 
@@ -78,45 +74,50 @@ public class PdfReport implements IReport {
      * @return null if report was generated successfully, otherwise error message
      */
     public String generateReport() {
-
-        if(path == null || "".equals(path)) {
-            LOG.debug("Report path is not specified");
-            return Translator.localize("argopdf.report.error.file.path.is.not.specified");
-        }
-
-        if(getLogoPath() != null && !"".equals(getLogoPath())) {
-            try {
-                Image.getInstance(getLogoPath());
-            } catch(Exception ex) {
-                LOG.debug("Report image path is incorrect");
-                return Translator.localize("argopdf.report.error.image.logo.path.is.not.specified");
-            }
-        }
-
-        document = new Document();
-
-        PdfWriter writer;
         try {
-            writer = PdfWriter.getInstance(document,new FileOutputStream(path));
-        } catch(DocumentException ex) {
-            LOG.debug("Can not create an instance of PdfWriter class.");
-            return Translator.localize("argopdf.report.error.file.is.used.by.another.application");
-        } catch(FileNotFoundException ex) {
-            LOG.debug(ex.getMessage());
-            return Translator.localize("argopdf.report.error.unknown");
+            saveOptions();
+            if(path == null || "".equals(path)) {
+                LOG.debug("Report path is not specified");
+                return Translator.localize("argopdf.report.error.file.path.is.not.specified");
+            }
+
+            if(getLogoPath() != null && !"".equals(getLogoPath())) {
+                try {
+                    Image.getInstance(getLogoPath());
+                } catch(Exception ex) {
+                    LOG.debug("Report image path is incorrect");
+                    return Translator.localize("argopdf.report.error.image.logo.path.is.not.specified");
+                }
+            }
+
+            document = new Document();
+
+            PdfWriter writer;
+            try {
+                writer = PdfWriter.getInstance(document,new FileOutputStream(path));
+            } catch(DocumentException ex) {
+                LOG.debug("Can not create an instance of PdfWriter class.");
+                return Translator.localize("argopdf.report.error.file.is.used.by.another.application");
+            } catch(FileNotFoundException ex) {
+                //todo move exception, it throws when file is busy
+                LOG.debug(ex.getMessage());
+                return Translator.localize("argopdf.report.error.unknown");
+            }
+
+            generateMetadata();
+            document.open();
+            if(generateTitlePage) {
+                generateTitlePage(writer);
+            }
+
+            generateUseCaseDiagrams();
+
+            document.close();
+
+            return null;
+        } finally {
+            loadOptions();
         }
-
-        generateMetadata();
-        document.open();
-        if(generateTitlePage) {
-            generateTitlePage(writer);
-        }
-
-        generateUseCaseDiagrams();
-            
-        document.close();
-
-        return null;
     }
 
     /**
@@ -194,7 +195,7 @@ public class PdfReport implements IReport {
                 if(node != null && (node.getUserObject() instanceof UseCases) && node.isSelected()) {
 
                     TreeNode useCaseDiagramNode = (TreeNode)node.getFirstChild();
-                    Font font = new Font(Font.HELVETICA, 15, Font.BOLD);
+                    Font font = new Font(Font.HELVETICA, 25, Font.BOLD);
                     //todo translate
                     Chapter useCaseChapter = new Chapter(new Paragraph("Use Case diagrams", font), 1);
                     boolean addUseCase = false;
@@ -244,34 +245,49 @@ public class PdfReport implements IReport {
         //todo Manage Out of memmory exception
         if(diagram == null) return;
         LOG.debug("add Use Case diagram: " + diagram.getName());
-        TargetManager tm = TargetManager.getInstance();
-        tm.setTarget(diagram);
 
-        Section section = chapter.addSection(diagram.getName(), 2);
+        //Creates section in pdf file, which will contain
+        //info about Use Case diagram, which is in processing
+
+        Paragraph paragraph = new Paragraph(diagram.getName(), new Font(Font.HELVETICA, 20, Font.BOLD));
+        Section section = chapter.addSection(paragraph, 2);
+
+        Image im = ReportUtils.makeImageOfDiagram(diagram);
+        if(im != null) {
+            ReportUtils.adjustImageSizeToDocumentPageSize(im,  document);
+            section.add(im);
+        }
 /*
-        String defaultName = diagram.getName();
-        defaultName = Util.stripJunk(defaultName);
+        Collection actors = Model.getUseCasesHelper().getAllActors(diagram.getNamespace());
+        Collection useCases = Model.getUseCasesHelper().getAllUseCases(diagram.getNamespace());
 */
 
-//        Project p =  ProjectManager.getManager().getCurrentProject();
-//        SaveGraphicsManager sgm = SaveGraphicsManager.getInstance();
-        SaveGraphicsAction cmd = SaveGraphicsManager.getInstance().getSaveActionBySuffix("gif");
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        cmd.setStream(outputStream);
-        cmd.setScale(Configuration.getInteger(SaveGraphicsManager.KEY_GRAPHICS_RESOLUTION, 1));
-        cmd.actionPerformed(null);
-
-        try {
-            GifImage im = new GifImage(outputStream.toByteArray());
-            section.add(im.getImage(1));
-            outputStream.close();
-        } catch(Exception ex) {
-            System.out.println("PdfReport.addUseCaseDiagram ex = '"+ex.getMessage()+"'");
-            ex.printStackTrace(System.out);
-        }
-
         section.add(Chunk.NEWLINE);
+        Paragraph summary = UseCasesDiagramHelper.generateSummaryInfo(diagram);
+
+        section.add(summary);
+
+        //Enumeration elements = diagram.elements();
+        section.add(Chunk.NEWLINE);
+    }
+
+    /**
+     * Saves options, which can be changed during report generation
+     */
+    private void saveOptions() {
+        TargetManager tm = TargetManager.getInstance();
+
+        options.put("tm.targets", tm.getTargets());
+        options.put("tm.target", tm.getTarget());
+    }
+
+    /**
+     * Loads options, which was saved earlier
+     */
+    private void loadOptions() {
+        TargetManager tm = TargetManager.getInstance();
+        tm.setTargets((java.util.List)options.get("tm.targets"));
+        tm.setTarget(options.get("tm.target"));
     }
 
     public void setTree(JTree tree) {
