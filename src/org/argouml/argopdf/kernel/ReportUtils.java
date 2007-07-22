@@ -27,14 +27,23 @@ import org.argouml.uml.diagram.ArgoDiagram;
 import org.argouml.uml.ui.SaveGraphicsManager;
 import org.argouml.ui.targetmanager.TargetManager;
 import org.argouml.configuration.Configuration;
+import org.argouml.application.helpers.ResourceLoaderWrapper;
+import org.argouml.i18n.Translator;
+import org.argouml.model.Model;
+import org.argouml.model.Facade;
 import org.tigris.gef.base.SaveGraphicsAction;
 import org.apache.log4j.Logger;
+import com.lowagie.text.*;
 import com.lowagie.text.Image;
-import com.lowagie.text.Document;
+import com.lowagie.text.Font;
 import com.lowagie.text.pdf.codec.PngImage;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
 
+import javax.swing.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.awt.*;
 
 /**
  * Contains helper methods for report generation
@@ -43,6 +52,8 @@ import java.io.IOException;
  * @version 0.1
  */
 public class ReportUtils {
+
+    public static Color TABLE_HEADER_COLOR = Color.BLUE;
 
     private static final Logger LOG = Logger.getLogger(ReportUtils.class);
 
@@ -94,6 +105,161 @@ public class ReportUtils {
 
             image.scaleAbsolute(image.width() * coeff1, image.height() * coeff1);
         }
+    }
+
+    /**
+     * Creates a cell of a table, which contains an image and a label.
+     *
+     * @param text      text of a cell
+     * @param colspan   colspan of a cell
+     * @param color     color of a cell
+     * @param imageName name of image to insert
+     * @param cellFont  font of a cell text
+     * @return cell of a table
+     */
+    protected static PdfPCell createCell(String text, int colspan, Color color, String imageName, com.lowagie.text.Font cellFont) {
+        PdfPCell retCell = new PdfPCell();
+        retCell.setColspan(colspan);
+        retCell.addElement(createImageLabelTable(text, imageName, color, cellFont));
+        retCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+
+        return retCell;
+    }
+
+    /**
+     * Creates a cell of a table, which contains a simple text.
+     *
+     * @param text     text of a cell
+     * @return         a cell of a table
+     */
+    protected static PdfPCell createCell(String text) {
+        return createCell(text, 1, null, null);
+    }
+
+
+    /**
+     * Creates a cell of a table, which contains a simple text.
+     *
+     * @param text     text of a cell
+     * @param colspan  colspan of a table
+     * @return         a cell of a table
+     */
+    protected static PdfPCell createCell(String text, int colspan) {
+        return createCell(text, colspan, null, null);
+    }
+
+    /**
+     * Creates a cell of a table, which contains a simple text.
+     *
+     * @param text     text of a cell
+     * @param colspan  colspan of a table
+     * @param color    color of a cell
+     * @param cellFont font of a cell text
+     * @return         a cell of a table
+     */
+    protected static PdfPCell createCell(String text, int colspan, Color color, com.lowagie.text.Font cellFont) {
+        PdfPCell cell;
+        if(cellFont != null) {
+            cell= new PdfPCell(new Paragraph(text, cellFont));
+        } else {
+            cell= new PdfPCell(new Paragraph(text));
+        }
+
+        cell.setColspan(colspan);
+        if(color != null) {
+            cell.setBackgroundColor(color);
+        }
+
+        return cell;
+    }
+
+    /**
+     * Creates a table, which contains image in the first cell and text in the second one.
+     *
+     * @param text      text of a second cell
+     * @param imageName name of an image, which should be placed in the first cell
+     * @param colorName color of a table, if null, will be white
+     * @param cellFont  font of a table text
+     * @return a table, which contains image in the first cell and text in the second one
+     */
+    protected static PdfPTable createImageLabelTable(String text, String imageName, Color colorName, com.lowagie.text.Font cellFont) {
+        try {
+            PdfPTable nestedTable = new PdfPTable(2);
+            nestedTable.setWidthPercentage(100);
+            nestedTable.setWidths(new float[]{1, 7});
+
+            ImageIcon icon = ResourceLoaderWrapper.lookupIconResource(imageName);
+            Image im = Image.getInstance(icon.getImage(), null);
+            im.setAlignment(Image.ALIGN_LEFT);
+            PdfPCell nestCell_1 = new PdfPCell(im, false);
+            nestCell_1.setHorizontalAlignment(Element.ALIGN_LEFT);
+            nestCell_1.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            nestCell_1.setBorder(0);
+            nestedTable.addCell(nestCell_1);
+
+            PdfPCell nestCell_2 = createCell(text, 1, colorName, cellFont);
+            nestCell_2.setHorizontalAlignment(Element.ALIGN_LEFT);
+            nestCell_2.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            nestCell_2.setBorder(0);
+            nestedTable.addCell(nestCell_2);
+
+            return nestedTable;
+        } catch(DocumentException ex) {
+            LOG.debug(ex.getMessage());
+        } catch(IOException ex) {
+            LOG.debug(ex.getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Creates a table with modifiers info.
+     *
+     * @param elem uml element, which modifiers info need to be generated
+     * @return an instance of <i>PdfPTable</i> class, which contains modifiers info
+     */
+    protected static PdfPTable createModifiersInfo(Object elem) {
+        PdfPTable table = new PdfPTable(2);
+        try {
+            table.setWidthPercentage(100);
+            table.setWidths(new float[]{1f, 3f});
+
+            Font captionFont = new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE);
+            table.addCell(createCell(Translator.localize("argopdf.report.modifiers.table.name"),
+                                     1, TABLE_HEADER_COLOR, captionFont));
+            table.addCell(createCell(Translator.localize("argopdf.report.modifiers.table.value"),
+                                     1, TABLE_HEADER_COLOR, captionFont));
+
+            String trueResource = "argopdf.report.modifiers.table.true";
+            String falseResource = "argopdf.report.modifiers.table.false";
+            table.addCell(createCell(Translator.localize("argopdf.report.modifiers.table.abstract")));
+            table.addCell(createCell(Model.getFacade().isAbstract(elem) ?
+                                     Translator.localize(trueResource) : Translator.localize(falseResource)));
+
+            table.addCell(createCell(Translator.localize("argopdf.report.modifiers.table.leaf")));
+            table.addCell(createCell(Model.getFacade().isLeaf(elem) ?
+                                     Translator.localize(trueResource) : Translator.localize(falseResource)));
+
+            table.addCell(createCell(Translator.localize("argopdf.report.modifiers.table.root")));
+            table.addCell(createCell(Model.getFacade().isRoot(elem) ?
+                                     Translator.localize(trueResource) : Translator.localize(falseResource)));
+            
+            table.addCell(createCell(Translator.localize("argopdf.report.modifiers.table.derived")));
+            Object tv = Model.getFacade().getTaggedValue(elem, Facade.DERIVED_TAG);
+            if (tv != null) {
+                String tag = Model.getFacade().getValueOfTag(tv);
+                if ("true".equals(tag)) {
+                    table.addCell(Translator.localize(trueResource));
+                }
+            }
+            table.addCell(Translator.localize(falseResource));
+
+        } catch(DocumentException ex) {
+            LOG.debug(ex.getMessage());
+        }
+
+        return table;
     }
 
 }

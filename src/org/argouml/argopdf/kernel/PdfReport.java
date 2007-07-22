@@ -95,13 +95,12 @@ public class PdfReport implements IReport {
             PdfWriter writer;
             try {
                 writer = PdfWriter.getInstance(document,new FileOutputStream(path));
+            } catch(FileNotFoundException ex) {
+                LOG.debug(ex.getMessage());
+                return Translator.localize("argopdf.report.error.file.is.used.by.another.application");
             } catch(DocumentException ex) {
                 LOG.debug("Can not create an instance of PdfWriter class.");
                 return Translator.localize("argopdf.report.error.file.is.used.by.another.application");
-            } catch(FileNotFoundException ex) {
-                //todo move exception, it throws when file is busy
-                LOG.debug(ex.getMessage());
-                return Translator.localize("argopdf.report.error.unknown");
             }
 
             generateMetadata();
@@ -115,9 +114,13 @@ public class PdfReport implements IReport {
             document.close();
 
             return null;
+        } catch(OutOfMemoryError ex) {
+            //todo Manage Out of memmory exception
+            LOG.debug(ex.getMessage());
         } finally {
             loadOptions();
         }
+        return null;
     }
 
     /**
@@ -195,9 +198,8 @@ public class PdfReport implements IReport {
                 if(node != null && (node.getUserObject() instanceof UseCases) && node.isSelected()) {
 
                     TreeNode useCaseDiagramNode = (TreeNode)node.getFirstChild();
-                    Font font = new Font(Font.HELVETICA, 25, Font.BOLD);
-                    //todo translate
-                    Chapter useCaseChapter = new Chapter(new Paragraph("Use Case diagrams", font), 1);
+                    Chapter useCaseChapter = new Chapter(new Paragraph(Translator.localize("argopdf.report.part.usecase.title"),
+                                                                       new Font(Font.HELVETICA, 25, Font.BOLD)), 1);
                     boolean addUseCase = false;
                     while(useCaseDiagramNode != null) {
                         if(useCaseDiagramNode.isSelected()) {
@@ -242,33 +244,30 @@ public class PdfReport implements IReport {
      * @param diagram Use Case diagram to add to the report
      */
     private void addUseCaseDiagram(Chapter chapter, UMLUseCaseDiagram diagram) {
-        //todo Manage Out of memmory exception
+
         if(diagram == null) return;
-        LOG.debug("add Use Case diagram: " + diagram.getName());
+        LOG.debug("Add Use Case diagram: " + diagram.getName());
 
         //Creates section in pdf file, which will contain
         //info about Use Case diagram, which is in processing
-
         Paragraph paragraph = new Paragraph(diagram.getName(), new Font(Font.HELVETICA, 20, Font.BOLD));
         Section section = chapter.addSection(paragraph, 2);
+        section.add(Chunk.NEWLINE);
 
         Image im = ReportUtils.makeImageOfDiagram(diagram);
         if(im != null) {
             ReportUtils.adjustImageSizeToDocumentPageSize(im,  document);
-            section.add(im);
+            section.add(new Chunk(im, 0, 0, true));
         }
-/*
-        Collection actors = Model.getUseCasesHelper().getAllActors(diagram.getNamespace());
-        Collection useCases = Model.getUseCasesHelper().getAllUseCases(diagram.getNamespace());
-*/
 
         section.add(Chunk.NEWLINE);
         Paragraph summary = UseCasesDiagramHelper.generateSummaryInfo(diagram);
-
+        Paragraph details = UseCasesDiagramHelper.generateDetailedInfo(diagram);
         section.add(summary);
+        section.add(details);
 
         //Enumeration elements = diagram.elements();
-        section.add(Chunk.NEWLINE);
+        section.add(Chunk.NEXTPAGE);
     }
 
     /**
