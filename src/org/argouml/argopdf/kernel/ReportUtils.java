@@ -108,7 +108,32 @@ public class ReportUtils {
     }
 
     /**
-     * Creates a cell of a table, which contains an image and a label.
+     * Creates a cell with a table inside of it, which contains an image and a label.
+     *
+     * @param text       text of a cell
+     * @param imageName  standard name of an image, which should be placed in the first cell
+     * @return           a table, which contains image in the first cell and text in the second one
+     */
+    protected static PdfPCell createCell(String text, String imageName) {
+        return createCell(text, 1, null, imageName, null);
+    }
+
+    /**
+     * Creates a cell with a table inside of it, which contains an image and a label.
+     *
+     * @param text        text of a cell
+     * @param imageName   standard name of an image, which should be placed in the first cell
+     * @param tableWidths array of relative widths of table cells
+     * @return            a table, which contains image in the first cell and text in the second one
+     */
+    protected static PdfPCell createCell(String text, String imageName, float[] tableWidths) {
+        if(tableWidths == null) tableWidths = new float[] {1, 7};
+        return createCell(text, 1, null, imageName, null, tableWidths);
+    }
+
+
+    /**
+     * Creates a cell with a table inside of it, which contains an image and a label.
      *
      * @param text      text of a cell
      * @param colspan   colspan of a cell
@@ -118,9 +143,25 @@ public class ReportUtils {
      * @return cell of a table
      */
     protected static PdfPCell createCell(String text, int colspan, Color color, String imageName, com.lowagie.text.Font cellFont) {
+        return createCell(text, colspan, color, imageName, cellFont, null);
+    }
+
+    /**
+     * Creates a cell with a table inside of it, which contains an image and a label.
+     *
+     * @param text      text of a cell
+     * @param colspan   colspan of a cell
+     * @param color     color of a cell
+     * @param imageName name of image to insert
+     * @param cellFont  font of a cell text
+     * @param tableWidth array of relative widths of table cells
+     * @return cell of a table
+     */
+    protected static PdfPCell createCell(String text, int colspan, Color color, String imageName, com.lowagie.text.Font cellFont, float[] tableWidth) {
+        if(tableWidth == null) tableWidth = new float[] {1, 7};
         PdfPCell retCell = new PdfPCell();
         retCell.setColspan(colspan);
-        retCell.addElement(createImageLabelTable(text, imageName, color, cellFont));
+        retCell.addElement(createImageLabelTable(text, imageName, color, tableWidth, cellFont));
         retCell.setHorizontalAlignment(Element.ALIGN_LEFT);
 
         return retCell;
@@ -135,7 +176,6 @@ public class ReportUtils {
     protected static PdfPCell createCell(String text) {
         return createCell(text, 1, null, null);
     }
-
 
     /**
      * Creates a cell of a table, which contains a simple text.
@@ -176,17 +216,42 @@ public class ReportUtils {
     /**
      * Creates a table, which contains image in the first cell and text in the second one.
      *
+     * @param text       text of a cell
+     * @param imageName  standard name of an image, which should be placed in the first cell
+     * @return           a table, which contains image in the first cell and text in the second one
+     */
+    protected static PdfPTable createImageLabelTable(String text, String imageName) {
+        return createImageLabelTable(text, imageName, null, null);
+    }
+
+    /**
+     * Creates a table, which contains image in the first cell and text in the second one.
+     *
      * @param text      text of a second cell
-     * @param imageName name of an image, which should be placed in the first cell
+     * @param imageName standard name of an image, which should be placed in the first cell
      * @param colorName color of a table, if null, will be white
      * @param cellFont  font of a table text
      * @return a table, which contains image in the first cell and text in the second one
      */
     protected static PdfPTable createImageLabelTable(String text, String imageName, Color colorName, com.lowagie.text.Font cellFont) {
+        return createImageLabelTable(text, imageName, colorName, new float[]{1, 7}, cellFont);
+    }
+
+    /**
+     * Creates a table, which contains image in the first cell and text in the second one.
+     *
+     * @param text       text of a second cell
+     * @param imageName  standard name of an image, which should be placed in the first cell
+     * @param colorName  color of a table, if null, will be white
+     * @param tableWidth array of relative widths of table cells
+     * @param cellFont   font of a table text
+     * @return           a table, which contains image in the first cell and text in the second one
+     */
+    protected static PdfPTable createImageLabelTable(String text, String imageName, Color colorName, float[] tableWidth, com.lowagie.text.Font cellFont) {
         try {
             PdfPTable nestedTable = new PdfPTable(2);
             nestedTable.setWidthPercentage(100);
-            nestedTable.setWidths(new float[]{1, 7});
+            nestedTable.setWidths(tableWidth);
 
             ImageIcon icon = ResourceLoaderWrapper.lookupIconResource(imageName);
             Image im = Image.getInstance(icon.getImage(), null);
@@ -195,6 +260,9 @@ public class ReportUtils {
             nestCell_1.setHorizontalAlignment(Element.ALIGN_LEFT);
             nestCell_1.setVerticalAlignment(Element.ALIGN_MIDDLE);
             nestCell_1.setBorder(0);
+            if(colorName != null) {
+                nestCell_1.setBackgroundColor(colorName);
+            }
             nestedTable.addCell(nestCell_1);
 
             PdfPCell nestCell_2 = createCell(text, 1, colorName, cellFont);
@@ -262,4 +330,30 @@ public class ReportUtils {
         return table;
     }
 
+    /**
+     * Generates an instance of <i>Phrase</i> class, with image and label in it.
+     *
+     * @param imageName name of the standard image
+     * @param text      text to be inserted
+     * @return an instance of <i>Phrase</i> class, with image and label in it
+     */
+    protected static Phrase createImageLabelPhrase(String imageName, String text) {
+        Phrase phrase = new Phrase();
+
+        try {
+            ImageIcon icon = ResourceLoaderWrapper.lookupIconResource(imageName);
+            com.lowagie.text.Image im = com.lowagie.text.Image.getInstance(icon.getImage(), null);
+            im.setAlignment(com.lowagie.text.Image.ALIGN_BOTTOM);
+
+            phrase.add(new Chunk(im, 0, 0, true));
+            phrase.add(text);
+
+        } catch(IOException ex) {
+            LOG.debug(ex.getMessage());
+        } catch(BadElementException ex) {
+            LOG.debug(ex.getMessage());
+        }
+        
+        return phrase;
+    }
 }
