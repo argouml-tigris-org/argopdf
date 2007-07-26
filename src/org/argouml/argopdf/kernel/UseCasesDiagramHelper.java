@@ -7,6 +7,7 @@ import org.argouml.uml.ui.foundation.core.ActionSetAssociationEndAggregation;
 import org.argouml.model.Model;
 import org.argouml.i18n.Translator;
 import org.apache.log4j.Logger;
+import org.netbeans.mdr.handlers.AEIndexSetWrapper;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -195,22 +196,8 @@ public class UseCasesDiagramHelper {
                                                  1, ReportUtils.TABLE_HEADER_COLOR, captionFont));
 
             for (Object elem : elements) {
-                String imageName;
-                if(Model.getFacade().isAActor(elem)) {
-                    imageName = "Actor";
-                } else if(Model.getFacade().isAUseCase(elem)) {
-                    imageName = "UseCase";
-                } else {
-                    //displays only Actors and Use Cases
-                    continue;
-                }
-                table.addCell(ReportUtils.createCell(Model.getFacade().getName(elem), 1, null, imageName, null));
-                Object taggedValue = Model.getFacade().getTaggedValue(elem, "documentation");
-                String documentation = "";
-                if(taggedValue != null) {
-                    documentation = Model.getFacade().getValueOfTag(taggedValue);
-                }
-                table.addCell(ReportUtils.createCell(documentation));
+                table.addCell(ReportUtils.createCell(Model.getFacade().getName(elem), 1, null, ReportUtils.getImageName(elem), null));
+                table.addCell(ReportUtils.createCell(ReportUtils.getElementDocumentation(elem)));
             }
 
         } catch(DocumentException ex) {
@@ -232,15 +219,7 @@ public class UseCasesDiagramHelper {
 
         Paragraph details = new Paragraph("");
         for (Object elem : elements) {
-            String imageName;
-            if(Model.getFacade().isAActor(elem)) {
-                imageName = "Actor";
-            } else if(Model.getFacade().isAUseCase(elem)) {
-                imageName = "UseCase";
-            } else {
-                //displays only Actors and Use Cases
-                continue;
-            }
+            String imageName = ReportUtils.getImageName(elem);
 
             details.add(Chunk.NEWLINE);
             details.add(ReportUtils.createImageLabelPhrase(imageName,
@@ -250,35 +229,12 @@ public class UseCasesDiagramHelper {
 
             if(Model.getFacade().isAActor(elem)) {
 
-                Paragraph parentsInfo = generatesParentsInfo(elem);
-                if(parentsInfo != null) {
-                    details.add(Chunk.NEWLINE);
-                    details.add(parentsInfo);
-                }
-
-                Paragraph childsInfo = generatesChildsInfo(elem);
-                if(childsInfo != null) {
-                    details.add(Chunk.NEWLINE);
-                    details.add(childsInfo);
-                }
-
                 Paragraph assosiationsInfo = generateActorRelationships(elem);
                 if(assosiationsInfo != null) {
                     details.add(Chunk.NEWLINE);
                     details.add(assosiationsInfo);
                 }
 
-/*
-                Collection general = Model.getFacade().getGeneralizations(elem);
-                System.out.println("UseCasesDiagramHelper.generateUseCaseDetailedInfo general = '"+general+"'");
-
-                for(Object el : general) {
-                    Object parent = Model.getFacade().getParent(el);
-                    Object child = Model.getFacade().getChild(el);
-                    System.out.println("UseCasesDiagramHelper.generateUseCaseDetailedInfo parent = '"+parent+"'");
-                    System.out.println("UseCasesDiagramHelper.generateUseCaseDetailedInfo child = '"+child+"'");
-                }
-*/
             } else if(Model.getFacade().isAUseCase(elem)) {
                 Paragraph assosiationsInfo = generateUseCaseRelationships(elem);
                 if(assosiationsInfo != null) {
@@ -294,72 +250,6 @@ public class UseCasesDiagramHelper {
     }
 
     /**
-     * Generates parents info of an Actor
-     *
-     * @param actor an instance of <i>Actor</i> class, which parents info will be generated
-     * @return an instance of <i>Paragraph</i> class, which contains parents info.
-     *         If <i>actor</i> parameter is not an instance of <i>Actor</i> class, return null.
-     *         If actor does not have parents, returns null.
-     */
-    private static Paragraph generatesParentsInfo(Object actor) {
-        if(Model.getFacade().isAActor(actor)) {
-
-            Collection general = Model.getFacade().getGeneralizations(actor);
-            ArrayList parents = new ArrayList();
-            for(Object el : general) {
-                parents.add(Model.getFacade().getParent(el));
-            }
-
-            if(parents.size() > 0) {
-                Chunk parentsTitle = new Chunk(Translator.localize("argopdf.report.part.usecase.parents.title"));
-                parentsTitle.setFont(new Font(Font.HELVETICA, 16, Font.BOLD));
-                //parentsTitle.setUnderline(1f, -1f);
-                Paragraph parentsInfo = new Paragraph(parentsTitle);
-
-                parentsInfo.add(generateElementsInfo(parents));
-
-                return parentsInfo;
-            }
-
-        }
-
-        return null;
-    }
-
-    /**
-     * Generates childs info of an Actor.
-     *
-     * @param actor an instance of <i>Actor</i> class, which childs info will be generated
-     * @return an instance of <i>Paragraph</i> class, which contains childs info.
-     *         If <i>actor</i> parameter is not an instance of <i>Actor</i> class, return null.
-     *         If actor does not have childs, returns null.
-     */
-    private static Paragraph generatesChildsInfo(Object actor) {
-        if(Model.getFacade().isAActor(actor)) {
-
-            Collection general = Model.getFacade().getSpecializations(actor);
-            ArrayList childs = new ArrayList();
-            for(Object el : general) {
-                childs.add(Model.getFacade().getChild(el));
-            }
-
-            if(childs.size() > 0) {
-                Chunk parentsTitle = new Chunk(Translator.localize("argopdf.report.part.usecase.children.title"));
-                parentsTitle.setFont(new Font(Font.HELVETICA, 16, Font.BOLD));
-                //parentsTitle.setUnderline(1f, -1f);
-                Paragraph parentsInfo = new Paragraph(parentsTitle);
-
-                parentsInfo.add(generateElementsInfo(childs));
-
-                return parentsInfo;
-            }
-
-        }
-
-        return null;
-    }
-
-    /**
      * Generates relationships info of Actor.
      *
      * @param actor an instance of <i>Actor</i> class, which assosiations info will be generated.
@@ -369,25 +259,76 @@ public class UseCasesDiagramHelper {
      */
     private static Paragraph generateActorRelationships(Object actor) {
         if(Model.getFacade().isAActor(actor)) {
-            Collection assEnds = Model.getFacade().getAssociationEnds(actor);
+            Collection assEnds        = Model.getFacade().getAssociationEnds(actor);
+            Collection generalization = Model.getFacade().getGeneralizations(actor);
+            Collection specialization = Model.getFacade().getSpecializations(actor);
+
+            Paragraph assInfo = null;
+            if(assEnds.size() > 0 || generalization.size() > 0 || specialization.size() > 0) {
+                Chunk assTitle = new Chunk(Translator.localize("argopdf.report.part.usecase.relationships.title"));
+                assTitle.setFont(new Font(Font.HELVETICA, 16, Font.BOLD));
+                assInfo = new Paragraph(assTitle);
+            }
+
+            if(generalization.size() > 0) {
+                for(Object el : generalization) {
+                    assInfo.add(Chunk.NEWLINE);
+                    assInfo.add(generateGeneralizationInfo(el));
+                }
+            }
+
+            if(specialization.size() > 0) {
+                for(Object el : specialization) {
+                    assInfo.add(Chunk.NEWLINE);
+                    assInfo.add(generateGeneralizationInfo(el));
+                }
+            }
 
             if(assEnds.size() > 0) {
-                Chunk assTitle = new Chunk(Translator.localize("argopdf.report.part.usecase.assosiations.title"));
-                assTitle.setFont(new Font(Font.HELVETICA, 16, Font.BOLD));
-                Paragraph assInfo = new Paragraph(assTitle);
 
-                int amount = 0;
                 for(Object el : assEnds) {
-                    if(amount > 0) {
-                        assInfo.add(Chunk.NEWLINE);
-                    }
-                    assInfo.add(generateAssosiatedElementsInfo(el));
-                    amount++;
+                    assInfo.add(Chunk.NEWLINE);
+                    assInfo.add(generateAssociatedElementsInfo(el));
                 }
 
                 return assInfo;
             }
 
+        }
+
+        return null;
+    }
+
+    private static void addToCollection(Collection dest, Collection source) {
+        if(source != null && source.size() > 0) {
+            Object[] sourceArr = source.toArray();
+            for(int i = 0 ; i < sourceArr.length; ++i) {
+                dest.add(sourceArr[i]);
+            }
+        }
+    }
+
+    /**
+     * Finds all relationship associations of the use case.
+     *
+     * @param useCase an instance of <i>UseCase</i> class, which relationship associations
+     *        will be found.
+     * @return an instance of <i>java.util.Collection</i> class, which contains all
+     *         relationship associations of the use case.
+     *         if parameter <i>useCase</i> is not an instance of <i>UseCase</i> class, returns null.
+     */
+    private static java.util.Collection getAllUseCaseRelationShips(Object useCase) {
+        if(Model.getFacade().isAUseCase(useCase)) {
+            Collection returnRes = new ArrayList();
+            addToCollection(returnRes, Model.getFacade().getAssociationEnds(useCase));
+            addToCollection(returnRes, Model.getFacade().getGeneralizations(useCase));
+            addToCollection(returnRes, Model.getFacade().getSpecializations(useCase));
+            addToCollection(returnRes, Model.getFacade().getClientDependencies(useCase));
+            addToCollection(returnRes, Model.getFacade().getSupplierDependencies(useCase));
+            addToCollection(returnRes, Model.getFacade().getExtends(useCase));
+            addToCollection(returnRes, Model.getFacade().getExtensionPoints(useCase));
+            addToCollection(returnRes, Model.getFacade().getIncludes(useCase));
+            return returnRes;
         }
 
         return null;
@@ -396,27 +337,40 @@ public class UseCasesDiagramHelper {
     /**
      * Generates relationships info of Use Case.
      *
-     * @param useCase an instance of <i>UseCase</i> class, which assosiations info will be generated.
-     * @return an instance of <i>Paragraph</i> class, which contains assosiations info.
+     * @param useCase an instance of <i>UseCase</i> class, which relationships info will be generated.
+     * @return an instance of <i>Paragraph</i> class, which contains relationships info.
      *         If <i>useCase</i> parameter is not an instance of <i>UseCase</i> class, return null.
-     *         If useCase does not have assosiations, return null.
+     *         If useCase does not have relationships, returns null.
      */
     private static Paragraph generateUseCaseRelationships(Object useCase) {
         if(Model.getFacade().isAUseCase(useCase)) {
-            Collection assEnds = Model.getFacade().getAssociationEnds(useCase);
+            Collection relationships = getAllUseCaseRelationShips(useCase);
 
-            if(assEnds.size() > 0) {
-                Chunk assTitle = new Chunk(Translator.localize("argopdf.report.part.usecase.assosiations.title"));
+            
+            Paragraph assInfo = null;
+            if(relationships.size() > 0) {
+                Chunk assTitle = new Chunk(Translator.localize("argopdf.report.part.usecase.relationships.title"));
                 assTitle.setFont(new Font(Font.HELVETICA, 16, Font.BOLD));
-                Paragraph assInfo = new Paragraph(assTitle);
+                assInfo = new Paragraph(assTitle);
+            }
 
-                int amount = 0;
-                for(Object el : assEnds) {
-                    if(amount > 0) {
-                        assInfo.add(Chunk.NEWLINE);
+            if(relationships.size() > 0) {
+
+                for(Object el : relationships) {
+                    assInfo.add(Chunk.NEWLINE);
+                    if(Model.getFacade().isAAssociationEnd(el)) {
+                        assInfo.add(generateAssociatedElementsInfo(el));
+                    } else if(Model.getFacade().isAGeneralization(el)) {
+                        assInfo.add(generateGeneralizationInfo(el));
+                    } else if(Model.getFacade().isADependency(el)) {
+                        assInfo.add(generateDependencyInfo(el));
+                    } else if(Model.getFacade().isAExtend(el)) {
+                        assInfo.add(generateExtendInfo(el));
+                    } else if(Model.getFacade().isAExtensionPoint(el)) {
+                        assInfo.add(generateExtensionPointInfo(el));
+                    } else if(Model.getFacade().isAInclude(el)) {
+                        assInfo.add(generateIncludeInfo(el));
                     }
-                    assInfo.add(generateAssosiatedElementsInfo(el));
-                    amount++;
                 }
 
                 return assInfo;
@@ -427,15 +381,230 @@ public class UseCasesDiagramHelper {
         return null;
     }
 
+    private static PdfPTable generateIncludeInfo(Object include) {
+        if(Model.getFacade().isAInclude(include)) {
+            PdfPTable table = new PdfPTable(2);
+            table.setWidthPercentage(100);
+
+            try {
+                table.setWidths(new float[]{2f, 6f});
+
+                String extPName = Model.getFacade().getName(include);
+                if(extPName == null || "".equals(extPName)) {
+                    extPName = Translator.localize("argopdf.report.part.usecase.include.table.unnamed.title");
+                }
+                extPName += " : " + Translator.localize("argopdf.report.part.usecase.include.table.title");
+                table.addCell(ReportUtils.createCell(extPName, 2,
+                                                     ReportUtils.TABLE_HEADER_COLOR,
+                                                     new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE)));
+
+                Object baseUC = Model.getFacade().getBase(include);
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.include.table.baseuc")));
+                table.addCell(ReportUtils.createCell(Model.getFacade().getName(baseUC), ReportUtils.getImageName(baseUC), new float[]{1, 20}));
+
+                Object inclUC = Model.getFacade().getAddition(include);
+                table.addCell(ReportUtils.createCell(Model.getFacade().getName(inclUC), ReportUtils.getImageName(inclUC), new float[]{1, 20}));
+
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.include.table.documentation")));
+                table.addCell(ReportUtils.createCell(ReportUtils.getElementDocumentation(include)));
+
+                return table;
+            } catch(DocumentException ex) {
+                LOG.debug(ex.getMessage());
+            }
+
+        }
+
+        return null;
+    }
+
+    private static PdfPTable generateExtensionPointInfo(Object extensionPoint) {
+        if(Model.getFacade().isAExtensionPoint(extensionPoint)) {
+            PdfPTable table = new PdfPTable(2);
+            table.setWidthPercentage(100);
+
+            try {
+                table.setWidths(new float[]{2f, 6f});
+
+                String extPName = Model.getFacade().getName(extensionPoint);
+                if(extPName == null || "".equals(extPName)) {
+                    extPName = Translator.localize("argopdf.report.part.usecase.extension.point.table.unnamed.title");
+                }
+                extPName += " : " + Translator.localize("argopdf.report.part.usecase.extension.point.table.title");
+                table.addCell(ReportUtils.createCell(extPName, 2,
+                                                     ReportUtils.TABLE_HEADER_COLOR,
+                                                     new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE)));
+
+                Object baseUC = Model.getFacade().getUseCase(extensionPoint);
+
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.extension.point.table.baseuc")));
+                table.addCell(ReportUtils.createCell(Model.getFacade().getName(baseUC), ReportUtils.getImageName(baseUC), new float[]{1, 20}));
+
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.extension.point.table.documentation")));
+                table.addCell(ReportUtils.createCell(ReportUtils.getElementDocumentation(extensionPoint)));
+
+                return table;
+            } catch(DocumentException ex) {
+                LOG.debug(ex.getMessage());
+            }
+        }
+
+        return null;
+    }
+
+    private static PdfPTable generateExtendInfo(Object extend) {
+        if(Model.getFacade().isAExtend(extend)) {
+            PdfPTable table = new PdfPTable(2);
+            table.setWidthPercentage(100);
+
+            try {
+                table.setWidths(new float[]{2f, 6f});
+
+                String extName = Model.getFacade().getName(extend);
+                if(extName == null || "".equals(extName)) {
+                    extName = Translator.localize("argopdf.report.part.usecase.extend.table.unnamed.title");
+                }
+                extName += " : " + Translator.localize("argopdf.report.part.usecase.extend.table.title");
+                table.addCell(ReportUtils.createCell(extName, 2,
+                                                     ReportUtils.TABLE_HEADER_COLOR,
+                                                     new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE)));
+
+                Object baseUC = Model.getFacade().getBase(extend);
+                Object extension = Model.getFacade().getExtension(extend);
+                Object condition = Model.getFacade().getCondition(extend);
+
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.extend.table.baseuc")));
+                table.addCell(ReportUtils.createCell(Model.getFacade().getName(baseUC), ReportUtils.getImageName(baseUC), new float[]{1, 20}));
+
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.extend.table.extension")));
+                table.addCell(ReportUtils.createCell(Model.getFacade().getName(extension), ReportUtils.getImageName(extension), new float[]{1, 20}));
+
+                if (condition == null) {
+                    condition = "";
+                } else {
+                    condition = Model.getFacade().getBody(condition);
+                    if(condition == null) {
+                        condition = "";
+                    }
+                }
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.extend.table.condition")));
+                table.addCell(ReportUtils.createCell((String)condition));
+
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.extend.table.documentation")));
+                table.addCell(ReportUtils.createCell(ReportUtils.getElementDocumentation(extend)));
+                
+
+                return table;
+            } catch(DocumentException ex) {
+                LOG.debug(ex.getMessage());
+            }
+        }
+
+        return null;
+    }
+
     /**
-     * Generates information of assosiation. It is important, that the type of assosiation end
-     * must be an actor. Otherwise, method returns empty table.
+     * Generates information of dependency relationship.
+     *
+     * @param dependency an instance of <i>Dependency</i> class, witch info will be generated.
+     * @return an instance of <i>PdfPTable</i> class, which contains info of appropriate dependency.
+     *         if parameter <i>dependency</i> is not an instance of <i>Dependency</i> class, returns null.
+     */
+    private static PdfPTable generateDependencyInfo(Object dependency) {
+        if(Model.getFacade().isADependency(dependency)) {
+            PdfPTable table = new PdfPTable(2);
+            table.setWidthPercentage(100);
+
+            try {
+                table.setWidths(new float[]{2f, 6f});
+
+                String depName = Model.getFacade().getName(dependency);
+                if(depName == null || "".equals(depName)) {
+                    depName = Translator.localize("argopdf.report.part.usecase.dependency.table.unnamed.title");
+                }
+                depName += " : " + Translator.localize("argopdf.report.part.usecase.dependency.table.title");
+                table.addCell(ReportUtils.createCell(depName, 2,
+                                                     ReportUtils.TABLE_HEADER_COLOR,
+                                                     new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE)));
+
+                Collection suppliers = Model.getFacade().getSuppliers(dependency);
+                Collection clients = Model.getFacade().getClients(dependency);
+
+                for(Object el : suppliers) {
+                    table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.dependency.table.supplier")));
+                    table.addCell(ReportUtils.createCell(Model.getFacade().getName(el), ReportUtils.getImageName(el), new float[]{1, 20}));
+                }
+
+                for(Object el : clients) {
+                    table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.dependency.table.client")));
+                    table.addCell(ReportUtils.createCell(Model.getFacade().getName(el), ReportUtils.getImageName(el), new float[]{1, 20}));
+                }
+
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.dependency.table.documentation")));
+                table.addCell(ReportUtils.createCell(ReportUtils.getElementDocumentation(dependency)));
+
+                return table;
+            } catch(DocumentException ex) {
+                LOG.debug(ex.getMessage());
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Generates information of generalization relationship.
+     *
+     * @param generalization an instance of <i>Generalization</i> class, witch info will be generated.
+     * @return an instance of <i>PdfPTable</i> class, which contains info of appropriate generalization.
+     *         if parameter <i>generalization</i> is not an instance of <i>Generalization</i> class, returns null.
+     */
+    private static PdfPTable generateGeneralizationInfo(Object generalization) {
+        if(Model.getFacade().isAGeneralization(generalization)) {
+            PdfPTable table = new PdfPTable(2);
+            table.setWidthPercentage(100);
+
+            try {
+                table.setWidths(new float[]{2f, 6f});
+
+                String genName = (String)Model.getFacade().getDiscriminator(generalization);
+                if(genName == null || "".equals(genName)) {
+                    genName = Translator.localize("argopdf.report.part.usecase.generalization.table.unnamed.title");
+                }
+                genName += " : " + Translator.localize("argopdf.report.part.usecase.generalization.title");
+                table.addCell(ReportUtils.createCell(genName, 2,
+                                                     ReportUtils.TABLE_HEADER_COLOR,
+                                                     new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE)));
+
+                Object parent = Model.getFacade().getParent(generalization);
+                Object child = Model.getFacade().getChild(generalization);
+
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.generalization.table.parent")));
+                table.addCell(ReportUtils.createCell(Model.getFacade().getName(parent), ReportUtils.getImageName(parent), new float[]{1, 20}));
+
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.generalization.table.child")));
+                table.addCell(ReportUtils.createCell(Model.getFacade().getName(child), ReportUtils.getImageName(child), new float[]{1, 20}));
+
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.generalization.table.documentation")));
+                table.addCell(ReportUtils.createCell(ReportUtils.getElementDocumentation(generalization)));
+
+                return table;
+            } catch(DocumentException ex) {
+                LOG.debug(ex.getMessage());
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Generates information of assosiation relationship.
      *
      * @param assEnd an instance of <i>AssociationEnd</i> class, by which info of assosiated
-     *                element will be generated
+     *               element will be generated
      * @return an instance of <i>PdfPTable</i> class, which contains info of assosiated element
      */
-    private static PdfPTable generateAssosiatedElementsInfo(Object assEnd) {
+    private static PdfPTable generateAssociatedElementsInfo(Object assEnd) {
         if(Model.getFacade().isAAssociationEnd(assEnd)) {
             PdfPTable table = new PdfPTable(2);
             table.setWidthPercentage(100);
@@ -443,71 +612,44 @@ public class UseCasesDiagramHelper {
             try {
                 table.setWidths(new float[]{2f, 6f});
 
-                    Object assosiation = Model.getFacade().getAssociation(assEnd);
+                Object assosiation = Model.getFacade().getAssociation(assEnd);
 
-                    String assName = Model.getFacade().getName(assosiation);
-                    if(assName == null && "".equals(assName)) {
-                        assName = "";
-                    } else {
-                        assName += " : ";
-                    }
-                    assName += Translator.localize("argopdf.report.part.usecase.assosiation.table.title");
+                String assName = Model.getFacade().getName(assosiation);
+                if(assName == null || "".equals(assName)) {
+                    assName = Translator.localize("argopdf.report.part.usecase.assosiation.table.unnamed.title");
+                }
+                assName += " : " + Translator.localize("argopdf.report.part.usecase.assosiation.table.title");
 
-                    table.addCell(ReportUtils.createCell(assName, 2,
-                                                         ReportUtils.TABLE_HEADER_COLOR,
-                                                         new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE)));
+                table.addCell(ReportUtils.createCell(assName, 2,
+                                                     ReportUtils.TABLE_HEADER_COLOR,
+                                                     new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE)));
 
-                    table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.assosiation.table.abstract")));
-                    table.addCell(ReportUtils.createCell(String.valueOf(Model.getFacade().isAbstract(assosiation)), 2));
-                    table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.assosiation.table.leaf")));
-                    table.addCell(ReportUtils.createCell(String.valueOf(Model.getFacade().isLeaf(assosiation)), 2));
-                    table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.assosiation.table.root")));
-                    table.addCell(ReportUtils.createCell(String.valueOf(Model.getFacade().isRoot(assosiation)), 2));
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.assosiation.table.abstract")));
+                table.addCell(ReportUtils.createCell(String.valueOf(Model.getFacade().isAbstract(assosiation)), 2));
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.assosiation.table.leaf")));
+                table.addCell(ReportUtils.createCell(String.valueOf(Model.getFacade().isLeaf(assosiation)), 2));
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.assosiation.table.root")));
+                table.addCell(ReportUtils.createCell(String.valueOf(Model.getFacade().isRoot(assosiation)), 2));
 
-                    table.addCell(ReportUtils.createCell("   ", 2));
-                if(Model.getFacade().isAActor(Model.getFacade().getType(assEnd))) {
-                    PdfPTable assFromTable = generateAssosiatedEndInfo(assEnd, Translator.localize("argopdf.report.part.usecase.assosiation.table.from"));
-                    PdfPCell cell = new PdfPCell(assFromTable);
-                    cell.setColspan(2);
-                    table.addCell(cell);
-
-                    table.addCell(ReportUtils.createCell("   ", 2));
-
+                if(Model.getFacade().isAActor(Model.getFacade().getType(assEnd))  ||
+                   Model.getFacade().isAUseCase(Model.getFacade().getType(assEnd))) {
                     Collection connection = Model.getFacade().getConnections(assosiation);
                     for(Object el : connection) {
-                        if(Model.getFacade().isAAssociationEnd(el) && Model.getFacade().isAUseCase(Model.getFacade().getType(el))) {
-                            PdfPTable assToTable = generateAssosiatedEndInfo(el, Translator.localize("argopdf.report.part.usecase.assosiation.table.to"));
+                        if(Model.getFacade().isAAssociationEnd(el)) {
+                            table.addCell(ReportUtils.createCell("   ", 2));
+                            PdfPTable assToTable = generateAssosiatedEndInfo(el);
                             PdfPCell cell2 = new PdfPCell(assToTable);
                             cell2.setColspan(2);
                             table.addCell(cell2);
-                            break;
-                        }
-                    }
-                } else if(Model.getFacade().isAUseCase(Model.getFacade().getType(assEnd))) {
-                    PdfPTable assToTable = generateAssosiatedEndInfo(assEnd, Translator.localize("argopdf.report.part.usecase.assosiation.table.to"));
-                    PdfPCell cell2 = new PdfPCell(assToTable);
-                    cell2.setColspan(2);
-                    table.addCell(cell2);
-
-                    table.addCell(ReportUtils.createCell("   ", 2));
-
-                    Collection connection = Model.getFacade().getConnections(assosiation);
-                    for(Object el : connection) {
-                        if(Model.getFacade().isAAssociationEnd(el) && Model.getFacade().isAActor(Model.getFacade().getType(el))) {
-                            PdfPTable assFromTable = generateAssosiatedEndInfo(assEnd, Translator.localize("argopdf.report.part.usecase.assosiation.table.from"));
-                            PdfPCell cell = new PdfPCell(assFromTable);
-                            cell.setColspan(2);
-                            table.addCell(cell);
-                            break;
                         }
                     }
                 }
 
+                return table;
             } catch(DocumentException ex) {
                 LOG.debug(ex.getMessage());
             }
 
-            return table;
         }
 
         return null;
@@ -517,11 +659,10 @@ public class UseCasesDiagramHelper {
      * Generates information of assosiation end.
      *
      * @param assEnd        an instance of <i>AssociationEnd</i> class, which info will be generated
-     * @param directionName string value of direction of the assosiation
      * @return An instance of <i>PdfPTable</i> class, which contains info of assosiation end.
      *         If <i>assEnd</i> is not an instance of AssociationEnd class, returns null.
      */
-    private static PdfPTable generateAssosiatedEndInfo(Object assEnd, String directionName) {
+    private static PdfPTable generateAssosiatedEndInfo(Object assEnd) {
         if(Model.getFacade().isAAssociationEnd(assEnd)) {
             PdfPTable table = new PdfPTable(2);
             table.setWidthPercentage(100);
@@ -530,14 +671,8 @@ public class UseCasesDiagramHelper {
                 table.setWidths(new float[]{2f, 6f});
                 Object element = Model.getFacade().getType(assEnd);
 
-                table.addCell(ReportUtils.createCell(directionName));
-                String imageName = "";
-                if(Model.getFacade().isAActor(element)) {
-                    imageName = "Actor";
-                } else if(Model.getFacade().isAUseCase(element)) {
-                    imageName = "UseCase";
-                }
-                table.addCell(ReportUtils.createCell(Model.getFacade().getName(element), imageName, new float[]{1, 20}));
+                String imageName = ReportUtils.getImageName(element);
+                table.addCell(ReportUtils.createCell(Model.getFacade().getName(element), 2, null,  imageName, null, new float[]{1, 20}));
 
                 table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.assosiation.table.assosiation.end")));
                 table.addCell(ReportUtils.createCell(Model.getFacade().getName(assEnd)));
@@ -551,13 +686,11 @@ public class UseCasesDiagramHelper {
                 table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.assosiation.table.aggregation")));
                 table.addCell(getAggregationKindEndVisibility(assEnd));
 
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.assosiation.table.navigable")));
+                table.addCell(Model.getFacade().toString(Model.getFacade().isNavigable(assEnd)));
+
                 table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.assosiation.table.documentation")));
-                Object taggedValue = Model.getFacade().getTaggedValue(assEnd, "documentation");
-                String documentation = "";
-                if(taggedValue != null) {
-                    documentation = Model.getFacade().getValueOfTag(taggedValue);
-                }
-                table.addCell(ReportUtils.createCell(documentation));
+                table.addCell(ReportUtils.createCell(ReportUtils.getElementDocumentation(assEnd)));
 
                 return table;
             } catch(DocumentException ex) {

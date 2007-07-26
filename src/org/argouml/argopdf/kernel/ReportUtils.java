@@ -58,6 +58,39 @@ public class ReportUtils {
     private static final Logger LOG = Logger.getLogger(ReportUtils.class);
 
     /**
+     * Finds the image name of the uml object according to the instance of parameter class.
+     *
+     * @param umlObject an instance of uml object
+     * @return the image name of uml object. If image name can not be found, returns empty string.
+     */
+    public static String getImageName(Object umlObject) {
+        String imageName = "";
+        if(Model.getFacade().isAUseCase(umlObject)) {
+            imageName = "useCase";
+        } else if(Model.getFacade().isAActor(umlObject)) {
+            imageName = "Actor";
+        }
+
+        return imageName;
+    }
+
+    /**
+     * Returns document of element.
+     *
+     * @param element element, witch document will be generated.
+     * @return document of element
+     */
+    public static String getElementDocumentation(Object element) {
+        Object taggedValue = Model.getFacade().getTaggedValue(element, "documentation");
+        String documentation = "";
+        if(taggedValue != null) {
+            documentation = Model.getFacade().getValueOfTag(taggedValue);
+        }
+
+        return documentation;
+    }
+
+    /**
      * Creates an image of the diagram, which goes as parameter
      *
      * @param diagram an instance of <i>ArgoDiagram</i> class, which image needs to be generated
