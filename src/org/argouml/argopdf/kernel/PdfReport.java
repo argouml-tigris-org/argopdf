@@ -27,12 +27,10 @@ import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.BaseFont;
-import com.lowagie.text.pdf.PdfPTable;
 
 import javax.swing.*;
 import java.io.*;
 import java.util.HashMap;
-import java.util.Enumeration;
 
 import org.argouml.ui.argopdf.ArgoPDFMenuPlugin;
 import org.argouml.ui.targetmanager.TargetManager;
@@ -40,7 +38,9 @@ import org.argouml.i18n.Translator;
 import org.argouml.argopdf.ui.TreeNode;
 import org.argouml.uml.UseCases;
 import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
+import org.argouml.model.Model;
 import org.apache.log4j.Logger;
+import org.omg.uml.modelmanagement.UmlPackage;
 
 /**
  * PdfReport represents the implementation of IReport interface by using
@@ -68,6 +68,9 @@ public class PdfReport implements IReport {
     private HashMap options = new HashMap();
 
     private Document document;
+
+    //represents current chapter number
+    private int chapterNumber = 0;
 
     /**
      * Generates report and saves it to the path specified bu the user
@@ -110,6 +113,7 @@ public class PdfReport implements IReport {
             }
 
             generateUseCaseDiagrams();
+            generatePackagesInfo();
 
             document.close();
 
@@ -198,14 +202,16 @@ public class PdfReport implements IReport {
                 if(node != null && (node.getUserObject() instanceof UseCases) && node.isSelected()) {
 
                     TreeNode useCaseDiagramNode = (TreeNode)node.getFirstChild();
-                    Chapter useCaseChapter = new Chapter(new Paragraph(Translator.localize("argopdf.report.part.usecase.title"),
-                                                                       new Font(Font.HELVETICA, 25, Font.BOLD)), 1);
+                    Chapter useCaseChapter = new Chapter(ReportUtils.generateTitle(
+                                                            Translator.localize("argopdf.report.part.usecase.title"),
+                                                            0, false), ++chapterNumber);
+
                     boolean addUseCase = false;
                     while(useCaseDiagramNode != null) {
                         if(useCaseDiagramNode.isSelected()) {
                             Object useCase = useCaseDiagramNode.getUserObject();
                             if(useCase instanceof UMLUseCaseDiagram) {
-                                addUseCaseDiagram(useCaseChapter, (UMLUseCaseDiagram)useCase);
+                                UseCasesDiagramHelper.addUseCaseDiagram(document, useCaseChapter, (UMLUseCaseDiagram)useCase);
                                 addUseCase = true;
                             }
                         }
@@ -227,6 +233,63 @@ public class PdfReport implements IReport {
     }
 
     /**
+     * Generates packages info which was selected by the user
+     */
+    private void generatePackagesInfo() {
+        if(reportTree != null) {
+            TreeNode root = (TreeNode)reportTree.getModel().getRoot();
+            if(root.isSelected()) {
+                TreeNode node = (TreeNode)root.getFirstChild();
+
+                while(node != null && node.isSelected()) {
+                    processUmlPackage(null, node);
+                    node = (TreeNode)node.getNextSibling();
+                }
+
+            }
+        }
+    }
+
+    /**
+     * Recursively processes uml package: generates info of the selected uml package and explores its subpackages
+     *
+     * @param packageNode an instance of <i>TreeNode</i> class, which represents uml package to process
+     * @param section     section of
+     */
+    private void processUmlPackage(Section section, TreeNode packageNode) {
+        if(Model.getFacade().isAPackage(packageNode.getUserObject()) && packageNode.isSelected()) {
+            boolean firstChapter = section == null;
+            String name = ReportUtils.getElementName(packageNode.getUserObject());
+
+            Paragraph title = ReportUtils.generateTitle(Translator.localize("argopdf.report.part.package.title") + " " + name, 0, false);
+            if(firstChapter) {
+                section = new Chapter(title, ++chapterNumber);
+            } else {
+                section = section.addSection(title, section.depth() + 1);
+            }
+
+            PackagesDiagramHelper.generateContentPackageInfo(document, section, (UmlPackage)packageNode.getUserObject());
+            section.add(Chunk.NEXTPAGE);
+
+            if(!packageNode.isLeaf()) {
+                TreeNode node = (TreeNode)packageNode.getFirstChild();
+                while(node != null) {
+                    processUmlPackage(section, node);
+                    node = (TreeNode)node.getNextSibling();
+                }
+            }
+
+            if(firstChapter) {
+                try {
+                    document.add(section);
+                } catch(DocumentException ex) {
+                    LOG.debug(ex.getMessage());
+                }
+            }
+        }
+    }
+
+    /**
      * Generates metadata of the report. This method should be called before
      * instance of the <i>Document</i> class will be called.
      */
@@ -235,39 +298,6 @@ public class PdfReport implements IReport {
         document.addAuthor(author);
         document.addSubject(Translator.localize("argopdf.report.metadata.subject"));
         document.addCreator(ArgoPDFMenuPlugin.ARGO_PDF_NAME + " " + ArgoPDFMenuPlugin.ARGO_PDF_VERSION);
-    }
-
-    /**
-     * Adds Use Case diagram to the report.
-     *
-     * @param chapter chapter of Use Case diagrams
-     * @param diagram Use Case diagram to add to the report
-     */
-    private void addUseCaseDiagram(Chapter chapter, UMLUseCaseDiagram diagram) {
-
-        if(diagram == null) return;
-        LOG.debug("Add Use Case diagram: " + diagram.getName());
-
-        //Creates section in pdf file, which will contain
-        //info about Use Case diagram, which is in processing
-        Paragraph paragraph = new Paragraph(diagram.getName(), new Font(Font.HELVETICA, 20, Font.BOLD));
-        Section section = chapter.addSection(paragraph, 2);
-        section.add(Chunk.NEWLINE);
-
-        Image im = ReportUtils.makeImageOfDiagram(diagram);
-        if(im != null) {
-            ReportUtils.adjustImageSizeToDocumentPageSize(im,  document);
-            section.add(new Chunk(im, 0, 0, true));
-        }
-
-        section.add(Chunk.NEWLINE);
-        Paragraph summary = UseCasesDiagramHelper.generateSummaryInfo(diagram);
-        Paragraph details = UseCasesDiagramHelper.generateDetailedInfo(diagram);
-        section.add(summary);
-        section.add(details);
-
-        //Enumeration elements = diagram.elements();
-        section.add(Chunk.NEXTPAGE);
     }
 
     /**

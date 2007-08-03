@@ -27,6 +27,7 @@ import org.argouml.kernel.Project;
 import org.argouml.model.Model;
 import org.argouml.application.helpers.ResourceLoaderWrapper;
 import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
+import org.argouml.uml.diagram.static_structure.ui.UMLClassDiagram;
 import org.argouml.uml.UseCases;
 import org.argouml.i18n.Translator;
 
@@ -70,9 +71,14 @@ public class TreeRenderer extends JPanel implements TreeCellRenderer {
             if(userObject instanceof UseCases) {
                 stringValue = Translator.localize("argopdf.dialog.tab.general.tree.usecases");
                 icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject); 
-            }
-            if(userObject instanceof UMLUseCaseDiagram) {
-                stringValue = ((UMLUseCaseDiagram)userObject).getName();
+            } else if(userObject instanceof UMLUseCaseDiagram) {
+                stringValue = ((UMLUseCaseDiagram)userObject).getName();//Model.getFacade().getName(userObject);
+                icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject);
+            } else if(userObject instanceof UMLClassDiagram) {
+                stringValue = ((UMLClassDiagram)userObject).getName();
+                icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject);
+            } else if(Model.getFacade().isAPackage(userObject)) {
+                stringValue = Model.getFacade().getName(userObject);
                 icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject);
             }
         }

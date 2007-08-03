@@ -1,3 +1,26 @@
+// $Id$
+// Copyright (c) 2007 The Regents of the University of California. All
+// Rights Reserved. Permission to use, copy, modify, and distribute this
+// software and its documentation without fee, and without a written
+// agreement is hereby granted, provided that the above copyright notice
+// and this paragraph appear in all copies. This software program and
+// documentation are copyrighted by The Regents of the University of
+// California. The software program and documentation are supplied "AS
+// IS", without any accompanying services from The Regents. The Regents
+// does not warrant that the operation of the program will be
+// uninterrupted or error-free. The end-user understands that the program
+// was developed for research purposes and is advised not to rely
+// exclusively on the program for any reason. IN NO EVENT SHALL THE
+// UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,
+// SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS,
+// ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF
+// THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF
+// SUCH DAMAGE. THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE
+// PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
+// CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
+// UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 package org.argouml.argopdf.kernel;
 
 import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
@@ -16,6 +39,7 @@ import java.awt.*;
 
 import com.lowagie.text.*;
 import com.lowagie.text.Font;
+import com.lowagie.text.Image;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfPCell;
 
@@ -85,6 +109,36 @@ public class UseCasesDiagramHelper {
     }
 
     /**
+     * Adds Use Case diagram to the report.
+     *
+     * @param document current document instance
+     * @param chapter  chapter of Use Case diagrams
+     * @param diagram  Use Case diagram to add to the report
+     */
+    public static void addUseCaseDiagram(Document document, Chapter chapter, UMLUseCaseDiagram diagram) {
+
+        if(diagram == null) return;
+        LOG.debug("Add Use Case diagram: " + diagram.getName());
+
+        //Creates section in pdf file, which will contain
+        //info about Use Case diagram, which is in processing
+        Section section = chapter.addSection(ReportUtils.generateTitle(ReportUtils.getElementName(diagram), 1, false), 2);
+        section.add(Chunk.NEWLINE);
+
+        Image im = ReportUtils.makeImageOfDiagram(diagram);
+        if(im != null) {
+            ReportUtils.adjustImageSizeToDocumentPageSize(im,  document);
+            section.add(new Chunk(im, 0, 0, true));
+        }
+
+        section.add(Chunk.NEWLINE);
+        UseCasesDiagramHelper.generateSummaryInfo(section, diagram);
+        UseCasesDiagramHelper.generateDetailedInfo(section, diagram);
+
+        section.add(Chunk.NEXTPAGE);
+    }
+
+    /**
      * Returns all actors of use case diagram.
      *
      * @param diagram Use Case diagram, actors of which need to be found
@@ -123,45 +177,43 @@ public class UseCasesDiagramHelper {
     }
 
     /**
-     * Generates uml summary info
+     * Generates use cases diagram summary info
      *
+     * @param section section, to which summary info block will be added
      * @param diagram current diagarm, which summary info will be generated
-     * @return an instance of <i>Paragraph</i> class, which contains summary info
      */
-    public static Paragraph generateSummaryInfo(UMLDiagram diagram) {
-
-        Chunk sumChunk = new Chunk(Translator.localize("argopdf.report.part.usecase.summary.title"));
-        sumChunk.setFont(new Font(Font.HELVETICA, 18, Font.BOLD));
-        sumChunk.setUnderline(1f, -1f);
-        Paragraph summary = new Paragraph(sumChunk);
+    public static void generateSummaryInfo(Section section, UMLDiagram diagram) {
 
         if(diagram instanceof UMLUseCaseDiagram) {
-            summary.add(generateUseCasesSummaryInfo((UMLUseCaseDiagram)diagram));
+            PdfPTable table = generateUseCasesSummaryInfo((UMLUseCaseDiagram)diagram);
+            if(table != null) {
+                Section subSect = section.addSection(ReportUtils.generateTitle(
+                                                     Translator.localize("argopdf.report.summary"), 2, true),
+                                                     0);
+
+                subSect.add(table);
+            }
         }
 
-        return summary;
     }
 
     /**
      * Generates detailed info for uml element.
      *
+     * @param section section, to which detailed info will be added
      * @param diagram diagram, which elements need to generate detailed info
-     * @return an instance if <i>Paragraph</i> class, which contains detailed info
      */
-    public static Paragraph generateDetailedInfo(UMLDiagram diagram) {
+    public static void generateDetailedInfo(Section section, UMLDiagram diagram) {
 
-        Chunk sumChunk = new Chunk(Translator.localize("argopdf.report.part.usecase.details.title"));
-        sumChunk.setFont(new Font(Font.HELVETICA, 18, Font.BOLD));
-        sumChunk.setUnderline(1f, -1f);
-        Paragraph detailed = new Paragraph(Chunk.NEWLINE);
-        detailed.add(sumChunk);
-        detailed.add(Chunk.NEWLINE);
+        Section subSect = section.addSection(ReportUtils.generateTitle(
+                                             Translator.localize("argopdf.report.part.usecase.details.title"), 2, true),
+                                             0);
 
         if(diagram instanceof UMLUseCaseDiagram) {
-            detailed.add(generateUseCaseDetailedInfo((UMLUseCaseDiagram)diagram));
+            subSect.add(generateUseCaseDetailedInfo((UMLUseCaseDiagram)diagram));
         }
+        subSect.add(Chunk.NEWLINE);
 
-        return detailed;
     }
 
     /**
@@ -169,42 +221,13 @@ public class UseCasesDiagramHelper {
      *
      * @param diagram an instance of current use case diagram
      * @return an instance of <i>PdfPTable</i> class with summary info
+     *         null, if diagram does not have components
      */
     private static PdfPTable generateUseCasesSummaryInfo(UMLUseCaseDiagram diagram) {
         ArrayList elements = UseCasesDiagramHelper.getUseCaseActors(diagram);
         elements.addAll(UseCasesDiagramHelper.getUseCases(diagram));
 
-        return generateElementsInfo(elements);
-    }
-
-    /**
-     * Generates info of elements. Info is presented in a table, with name and documentation columns.
-     *
-     * @param elements ArraList of alements, info of which will be generated
-     * @return and instance of <i>PdfPTable</i> class, which contains elements info.
-     */
-    private static PdfPTable generateElementsInfo(ArrayList elements) {
-        PdfPTable table = new PdfPTable(2);
-        table.setWidthPercentage(100);
-        try {
-            table.setWidths(new float[]{1f, 2f});
-
-            Font captionFont = new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE);
-            table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.info.table.name"),
-                                                 1, ReportUtils.TABLE_HEADER_COLOR, captionFont));
-            table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.info.table.documentation"),
-                                                 1, ReportUtils.TABLE_HEADER_COLOR, captionFont));
-
-            for (Object elem : elements) {
-                table.addCell(ReportUtils.createCell(Model.getFacade().getName(elem), 1, null, ReportUtils.getImageName(elem), null));
-                table.addCell(ReportUtils.createCell(ReportUtils.getElementDocumentation(elem)));
-            }
-
-        } catch(DocumentException ex) {
-            LOG.debug(ex.getMessage());
-        }
-
-        return table;
+        return ReportUtils.generateElementsInfo(elements);
     }
 
     /**
@@ -219,12 +242,10 @@ public class UseCasesDiagramHelper {
 
         Paragraph details = new Paragraph("");
         for (Object elem : elements) {
-            String imageName = ReportUtils.getImageName(elem);
 
             details.add(Chunk.NEWLINE);
-            details.add(ReportUtils.createImageLabelPhrase(imageName,
-                        " " + (Model.getFacade().getName(elem) == null ? "" : Model.getFacade().getName(elem))));
-
+            details.add(ReportUtils.createImageLabelPhrase(ReportUtils.getImageName(elem), null, ReportUtils.getAnchorElementName(elem), 2));
+            details.add(Chunk.NEWLINE);
             details.add(ReportUtils.createModifiersInfo(elem));
 
             if(Model.getFacade().isAActor(elem)) {
@@ -403,6 +424,7 @@ public class UseCasesDiagramHelper {
                 table.addCell(ReportUtils.createCell(Model.getFacade().getName(baseUC), ReportUtils.getImageName(baseUC), new float[]{1, 20}));
 
                 Object inclUC = Model.getFacade().getAddition(include);
+                table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.include.table.includeduc")));
                 table.addCell(ReportUtils.createCell(Model.getFacade().getName(inclUC), ReportUtils.getImageName(inclUC), new float[]{1, 20}));
 
                 table.addCell(ReportUtils.createCell(Translator.localize("argopdf.report.part.usecase.include.table.documentation")));

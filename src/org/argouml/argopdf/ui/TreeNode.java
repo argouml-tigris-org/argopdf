@@ -23,8 +23,16 @@
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 package org.argouml.argopdf.ui;
 
+import org.argouml.model.Model;
+import org.argouml.ui.explorer.rules.GoModelToElements;
+import org.argouml.uml.diagram.static_structure.ui.UMLClassDiagram;
+import org.argouml.kernel.ProjectManager;
+import org.omg.uml.modelmanagement.UmlPackage;
+
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Enumeration;
+import java.util.Collection;
+import java.util.Vector;
 
 /**
  * TreeNode is a part of a report contents tree, which is displayed in the contents
@@ -43,6 +51,24 @@ public class TreeNode extends DefaultMutableTreeNode {
 
     public TreeNode(Object userObject) {
         this(userObject, true, false);
+
+        if(Model.getFacade().isAPackage(userObject)) {
+            Vector diagrams = ProjectManager.getManager().getCurrentProject().getDiagrams();
+            for(Object el : diagrams) {
+                if (el instanceof UMLClassDiagram && userObject.equals(((UMLClassDiagram)el).getNamespace())) {
+                    this.add(new TreeNode(el));
+                }
+            }
+
+            Collection packages = (new GoModelToElements()).getChildren(userObject);
+            for(Object el : packages) {
+                if(Model.getFacade().isAPackage(el)) {
+                    this.add(new TreeNode(el));
+                }
+            }
+
+        }
+        
     }
 
     public TreeNode(Object userObject, boolean allowsChildren, boolean isSelected) {

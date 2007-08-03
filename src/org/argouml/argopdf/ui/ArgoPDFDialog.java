@@ -26,11 +26,17 @@ package org.argouml.argopdf.ui;
 import org.argouml.i18n.Translator;
 import org.argouml.kernel.ProjectManager;
 import org.argouml.kernel.Project;
+import org.argouml.kernel.MemberList;
 import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
+import org.argouml.uml.diagram.static_structure.ui.UMLClassDiagram;
 import org.argouml.uml.UseCases;
 import org.argouml.argopdf.kernel.PdfReport;
 import org.argouml.argopdf.kernel.IReport;
+import org.argouml.model.Model;
+import org.argouml.ui.explorer.rules.GoModelToElements;
+import org.argouml.ui.explorer.rules.GoModelToNode;
 import org.tigris.swidgets.LabelledLayout;
+import org.omg.uml.modelmanagement.UmlPackage;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -41,6 +47,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Vector;
 import java.util.Iterator;
+import java.util.Collection;
 
 
 /**
@@ -405,12 +412,37 @@ public class ArgoPDFDialog extends JDialog {
             this.currentProject = ProjectManager.getManager().getCurrentProject();
         }
 
+/*        try {
+            Object model = currentProject.getModel();
+            Collection allNamespaces = Model.getModelManagementHelper().getAllNamespaces(model);
+            Collection children2 = (new GoModelToElements()).getChildren(ProjectManager.getManager().getCurrentProject().getModel());
+            Collection children3 = (new GoModelToNode()).getChildren(ProjectManager.getManager().getCurrentProject().getModel());
+
+            for(Object el : children2) {
+                if(Model.getFacade().isAPackage(el)) {
+                    String name = Model.getFacade().getName(el);
+                    Collection children22 = (new GoModelToElements()).getChildren(el);
+                    System.out.println("ArgoPDFDialog.createTreeOfContentsArea name = '"+name+"'");
+                } else if (el instanceof UMLClassDiagram) {
+                    String name = Model.getFacade().getName(el);
+                    System.out.println("ArgoPDFDialog.createTreeOfContentsArea name_classD = '"+name+"'");
+                }
+            }
+
+            Collection nodes = Model.getCoreHelper().getAllNodes(model);
+            Collection children = Model.getCoreHelper().getChildren(model);
+            System.out.println("ArgoPDFDialog.createTreeOfContentsArea");
+        } catch(Exception e) {
+
+        }*/
+
         Project currentProject = this.currentProject;
+
         Vector diagrams = currentProject.getDiagrams();
         Iterator iter = diagrams.iterator();
-
         TreeNode node = new TreeNode(currentProject);
 
+        //add use case diagrams to the contents tree
         TreeNode useCaseFolderNode = new TreeNode(new UseCases());
         while(iter.hasNext()) {
             Object diagram = iter.next();
@@ -419,6 +451,14 @@ public class ArgoPDFDialog extends JDialog {
             }
         }
         node.add(useCaseFolderNode);
+
+        //add packages and its contents to the contents tree
+        Collection packages = (new GoModelToElements()).getChildren(currentProject.getModel());
+        for(Object el : packages) {
+            if(Model.getFacade().isAPackage(el)) {
+                node.add(new TreeNode(el));
+            }
+        }
 
         tree = new JTree(node);
         tree.setCellRenderer(new TreeRenderer());
