@@ -73,7 +73,7 @@ public class PdfReport implements IReport {
     private int chapterNumber = 0;
 
     /**
-     * Generates report and saves it to the path specified bu the user
+     * Generates report and saves it to the path specified by the user
      * @return null if report was generated successfully, otherwise error message
      */
     public String generateReport() {
@@ -251,7 +251,8 @@ public class PdfReport implements IReport {
     }
 
     /**
-     * Recursively processes uml package: generates info of the selected uml package and explores its subpackages
+     * Recursively processes uml package: generates info of the selected uml package
+     * and explores its subpackages
      *
      * @param packageNode an instance of <i>TreeNode</i> class, which represents uml package to process
      * @param section     section of

@@ -64,7 +64,6 @@ public class PackagesDiagramHelper {
             
         }
 
-        System.out.println("PackagesDiagramHelper.generateContentPackageInfo umlPackage.hashCode() = '"+umlPackage.hashCode()+"'");
     }
 
 }
