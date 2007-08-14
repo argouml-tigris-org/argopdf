@@ -38,9 +38,12 @@ import org.argouml.i18n.Translator;
 import org.argouml.argopdf.ui.TreeNode;
 import org.argouml.uml.UseCases;
 import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
+import org.argouml.uml.diagram.static_structure.ui.UMLClassDiagram;
+import org.argouml.uml.diagram.sequence.ui.UMLSequenceDiagram;
+import org.argouml.uml.diagram.collaboration.ui.UMLCollaborationDiagram;
+import org.argouml.uml.diagram.activity.ui.UMLActivityDiagram;
 import org.argouml.model.Model;
 import org.apache.log4j.Logger;
-import org.omg.uml.modelmanagement.UmlPackage;
 
 /**
  * PdfReport represents the implementation of IReport interface by using
@@ -70,7 +73,18 @@ public class PdfReport implements IReport {
     private Document document;
 
     //represents current chapter number
-    private int chapterNumber = 0;
+    private static int chapterNumber = 0;
+
+    /**
+     * Generates new chapter
+     *
+     * @param name      name of the chapter
+     * @param underline true, if chapter should be undelined, otherwise false
+     * @return an instance of new <i>Chapter</i> class with appropriate name
+     */
+    public static Chapter generateNewChapter(String name, boolean underline) {
+        return new Chapter(ReportUtils.generateTitle(name, 0, underline), ++chapterNumber);
+    }
 
     /**
      * Generates report and saves it to the path specified by the user
@@ -113,6 +127,8 @@ public class PdfReport implements IReport {
             }
 
             generateUseCaseDiagrams();
+            processAllClassDiagrams((TreeNode)reportTree.getModel().getRoot(), null);
+            processAllSequenceCollaborationActivityDiagrams((TreeNode)reportTree.getModel().getRoot(), null);
             generatePackagesInfo();
 
             document.close();
@@ -202,9 +218,7 @@ public class PdfReport implements IReport {
                 if(node != null && (node.getUserObject() instanceof UseCases) && node.isSelected()) {
 
                     TreeNode useCaseDiagramNode = (TreeNode)node.getFirstChild();
-                    Chapter useCaseChapter = new Chapter(ReportUtils.generateTitle(
-                                                            Translator.localize("argopdf.report.part.usecase.title"),
-                                                            0, false), ++chapterNumber);
+                    Chapter useCaseChapter = generateNewChapter(Translator.localize("argopdf.report.part.usecase.title"), false);
 
                     boolean addUseCase = false;
                     while(useCaseDiagramNode != null) {
@@ -251,34 +265,89 @@ public class PdfReport implements IReport {
     }
 
     /**
+     * Processes all class diagrams which are childrens in the content tree for <i>node</i>
+     *
+     * @param node    root node for class diagrams which will be processed
+     * @param section current section
+     */
+    private void processAllClassDiagrams(TreeNode node, Section section) {
+        if(node == null) return;
+        TreeNode tNode = (TreeNode)node.getFirstChild();
+
+        while(tNode != null) {
+            Object el = tNode.getUserObject();
+            if(el instanceof UMLClassDiagram && tNode.isSelected()) {
+                ClassDiagramHelper.generateDiagramInfo(document, section, (UMLClassDiagram)el);
+                if(section != null) {
+                    section.add(Chunk.NEXTPAGE);
+                }
+            }
+            tNode = (TreeNode)tNode.getNextSibling();
+        }
+
+    }
+
+    /**
+     * Processes all collaboration and sequence diagrams which are children in the content tree
+     * for <i>node</i>
+     *
+     * @param node    root node for collaboration and sequence diagrams which will be processed
+     * @param section current section
+     */
+    private void processAllSequenceCollaborationActivityDiagrams(TreeNode node, Section section) {
+        if(node == null) return;
+
+        TreeNode tNode = (TreeNode)node.getFirstChild();
+        while(tNode != null) {
+            Object el = tNode.getUserObject();
+            if(tNode.isSelected()) {
+                if(el instanceof UMLSequenceDiagram) {
+                    SequenceDiagramHelper.generateDiagramInfo(document, section, (UMLSequenceDiagram)el);
+                } else if(el instanceof UMLCollaborationDiagram) {
+                    CollaborationDiagramHelper.generateDiagramInfo(document, section, (UMLCollaborationDiagram)el);
+                } else if(el instanceof UMLActivityDiagram) {
+                    ActivityDiagramHelper.generateDiagramInfo(document, section, (UMLActivityDiagram)el);
+                }
+            }
+            tNode = (TreeNode)tNode.getNextSibling();
+        }
+
+    }
+
+    /**
      * Recursively processes uml package: generates info of the selected uml package
      * and explores its subpackages
      *
      * @param packageNode an instance of <i>TreeNode</i> class, which represents uml package to process
-     * @param section     section of
+     * @param section     current section
      */
     private void processUmlPackage(Section section, TreeNode packageNode) {
         if(Model.getFacade().isAPackage(packageNode.getUserObject()) && packageNode.isSelected()) {
             boolean firstChapter = section == null;
             String name = ReportUtils.getElementName(packageNode.getUserObject());
 
-            Paragraph title = ReportUtils.generateTitle(Translator.localize("argopdf.report.part.package.title") + " " + name, 0, false);
             if(firstChapter) {
-                section = new Chapter(title, ++chapterNumber);
+                section = generateNewChapter(Translator.localize("argopdf.report.part.package.title") + " " + name, false);
             } else {
+                Paragraph title = ReportUtils.generateTitle(Translator.localize("argopdf.report.part.package.title") + " " + name, 0, false);
                 section = section.addSection(title, section.depth() + 1);
             }
 
-            PackagesDiagramHelper.generateContentPackageInfo(document, section, (UmlPackage)packageNode.getUserObject());
-            section.add(Chunk.NEXTPAGE);
+            if(!packageNode.isLeaf()) {
+                processAllClassDiagrams(packageNode, section);
+                processAllSequenceCollaborationActivityDiagrams(packageNode, section);
+            }
 
             if(!packageNode.isLeaf()) {
                 TreeNode node = (TreeNode)packageNode.getFirstChild();
                 while(node != null) {
-                    processUmlPackage(section, node);
+                    if(Model.getFacade().isAPackage(node.getUserObject())) {
+                        processUmlPackage(section, node);
+                    }
                     node = (TreeNode)node.getNextSibling();
                 }
             }
+
 
             if(firstChapter) {
                 try {
@@ -287,6 +356,7 @@ public class PdfReport implements IReport {
                     LOG.debug(ex.getMessage());
                 }
             }
+
         }
     }
 
@@ -305,6 +375,8 @@ public class PdfReport implements IReport {
      * Saves options, which can be changed during report generation
      */
     private void saveOptions() {
+        chapterNumber = 0;
+
         TargetManager tm = TargetManager.getInstance();
 
         options.put("tm.targets", tm.getTargets());

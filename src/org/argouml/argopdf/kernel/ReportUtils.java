@@ -24,6 +24,10 @@
 package org.argouml.argopdf.kernel;
 
 import org.argouml.uml.diagram.ArgoDiagram;
+import org.argouml.uml.diagram.deployment.ui.UMLDeploymentDiagram;
+import org.argouml.uml.diagram.activity.ui.UMLActivityDiagram;
+import org.argouml.uml.diagram.collaboration.ui.UMLCollaborationDiagram;
+import org.argouml.uml.diagram.sequence.ui.UMLSequenceDiagram;
 import org.argouml.uml.diagram.state.ui.UMLStateDiagram;
 import org.argouml.uml.diagram.ui.UMLDiagram;
 import org.argouml.uml.diagram.static_structure.ui.UMLClassDiagram;
@@ -97,7 +101,8 @@ public class ReportUtils {
         String name;
 
         if(element instanceof UMLUseCaseDiagram || element instanceof UMLClassDiagram ||
-           element instanceof UMLStateDiagram) {
+           element instanceof UMLStateDiagram   || element instanceof UMLSequenceDiagram ||
+           element instanceof UMLCollaborationDiagram || element instanceof UMLActivityDiagram) {
             name = ((UMLDiagram)element).getName();
         } else {
             name = Model.getFacade().getName(element);
@@ -118,14 +123,22 @@ public class ReportUtils {
                 name += Translator.localize("argopdf.report.enumeration");
             } else if(Model.getFacade().isAEnumerationLiteral(element)) {
                 name += Translator.localize("argopdf.report.literal");
+            } else if(Model.getFacade().isAPackage(element)) {
+                name += Translator.localize("argopdf.report.package");
             } else if(element instanceof UMLUseCaseDiagram) {
                 name += Translator.localize("argopdf.report.diagram.usecase");
             } else if(element instanceof UMLClassDiagram) {
                 name += Translator.localize("argopdf.report.diagram.class");
             } else if(element instanceof UMLStateDiagram) {
                 name += Translator.localize("argopdf.report.diagram.statechart");
-            } else if(Model.getFacade().isAPackage(element)) {
-                name += Translator.localize("argopdf.report.package");
+            } else if(element instanceof UMLSequenceDiagram) {
+                name += Translator.localize("argopdf.report.diagram.sequence");
+            } else if(element instanceof UMLCollaborationDiagram) {
+                name += Translator.localize("argopdf.report.diagram.collaboration");
+            } else if(element instanceof UMLActivityDiagram) {
+                name += Translator.localize("argopdf.report.diagram.activity");
+            } else if(element instanceof UMLDeploymentDiagram) {
+                name += Translator.localize("argopdf.report.diagram.deployment");
             } else if(Model.getFacade().isADependency(element)) {
                 name += Translator.localize("argopdf.report.dependency");
             } else if(Model.getFacade().isAAssociation(element)) {

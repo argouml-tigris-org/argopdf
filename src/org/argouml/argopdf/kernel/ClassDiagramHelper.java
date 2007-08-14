@@ -116,12 +116,18 @@ public class ClassDiagramHelper {
         if(diagram == null) return;
         LOG.debug("generate info of class diagram: " + diagram.getName());
 
-        Paragraph title = ReportUtils.generateTitle(ReportUtils.getElementName(diagram), 1, false);
-        section = section.addSection(title, section.depth() + 1);
+        boolean addSection = false;
+        if(section != null) {
+            Paragraph title = ReportUtils.generateTitle(ReportUtils.getElementName(diagram), 1, false);
+            section = section.addSection(title, section.depth() + 1);
+        } else {
+            addSection = true;
+            section = PdfReport.generateNewChapter(ReportUtils.getElementName(diagram), false);
+        }
 
         Image im = ReportUtils.makeImageOfDiagram(diagram);
         if(im != null) {
-            ReportUtils.adjustImageSizeToDocumentPageSize(im,  document);
+            ReportUtils.adjustImageSizeToDocumentPageSize(im, document);
             section.add(Chunk.NEWLINE);
             section.add(new Chunk(im, 0, 0, true));
             section.add(Chunk.NEWLINE);
@@ -129,6 +135,14 @@ public class ClassDiagramHelper {
 
         generateSummaryInfo(section, diagram);
         generateDetailedInfo(document, section, diagram);
+
+        if(addSection) {
+            try {
+                document.add(section);
+            } catch(DocumentException ex) {
+                LOG.debug(ex.getMessage());
+            }
+        }
     }
 
     /**
@@ -512,7 +526,9 @@ public class ClassDiagramHelper {
 
             if(ActionSetParameterDirectionKind.RETURN_COMMAND.equals(kind)) {
                 Object type = Model.getFacade().getType(el2);
-                postfix += " : " + ((Classifier)type).getName();
+                if(type != null) {
+                    postfix += " : " + ((Classifier)type).getName();
+                }
             } else {
                 if(ActionSetParameterDirectionKind.OUT_COMMAND.equals(kind) ||
                    ActionSetParameterDirectionKind.INOUT_COMMAND.equals(kind)) {

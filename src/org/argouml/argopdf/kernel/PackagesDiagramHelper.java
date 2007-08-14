@@ -27,6 +27,10 @@ import org.apache.log4j.Logger;
 import org.omg.uml.modelmanagement.UmlPackage;
 import org.argouml.kernel.ProjectManager;
 import org.argouml.uml.diagram.static_structure.ui.UMLClassDiagram;
+import org.argouml.uml.diagram.sequence.ui.UMLSequenceDiagram;
+import org.argouml.uml.diagram.collaboration.ui.UMLCollaborationDiagram;
+import org.argouml.uml.diagram.ArgoDiagram;
+import org.argouml.uml.diagram.ui.UMLDiagram;
 
 import java.util.Vector;
 
@@ -40,30 +44,4 @@ import com.lowagie.text.Document;
  * @version 0.1
  */
 public class PackagesDiagramHelper {
-
-    private static final Logger LOG = Logger.getLogger(PackagesDiagramHelper.class);
-
-    /**
-     * Generates info of the uml package (package which is a node of the contents tree). Info includes:
-     *           -  class diagrams
-     *
-     * @param document   current document instance
-     * @param section    section of the uml package info
-     * @param umlPackage an instance of <i>UmlPackage</i> class, which will be processed
-     */
-    public static void generateContentPackageInfo(Document document, Section section, UmlPackage umlPackage) {
-        if(umlPackage == null) return;
-        LOG.debug("process node package " + umlPackage.getName());
-
-        Vector diagrams  = ProjectManager.getManager().getCurrentProject().getDiagrams();
-        for(Object el : diagrams) {
-
-            if(el instanceof UMLClassDiagram && umlPackage.equals(((UMLClassDiagram)el).getNamespace())) {
-                ClassDiagramHelper.generateDiagramInfo(document, section, (UMLClassDiagram)el);
-            }
-            
-        }
-
-    }
-
 }

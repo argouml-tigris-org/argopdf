@@ -26,17 +26,20 @@ package org.argouml.argopdf.ui;
 import org.argouml.i18n.Translator;
 import org.argouml.kernel.ProjectManager;
 import org.argouml.kernel.Project;
-import org.argouml.kernel.MemberList;
 import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
 import org.argouml.uml.diagram.static_structure.ui.UMLClassDiagram;
+import org.argouml.uml.diagram.sequence.ui.UMLSequenceDiagram;
+import org.argouml.uml.diagram.collaboration.ui.UMLCollaborationDiagram;
+import org.argouml.uml.diagram.ui.UMLDiagram;
+import org.argouml.uml.diagram.activity.ui.UMLActivityDiagram;
 import org.argouml.uml.UseCases;
 import org.argouml.argopdf.kernel.PdfReport;
 import org.argouml.argopdf.kernel.IReport;
 import org.argouml.model.Model;
 import org.argouml.ui.explorer.rules.GoModelToElements;
-import org.argouml.ui.explorer.rules.GoModelToNode;
 import org.tigris.swidgets.LabelledLayout;
 import org.omg.uml.modelmanagement.UmlPackage;
+import org.apache.log4j.Logger;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -48,6 +51,7 @@ import java.io.File;
 import java.util.Vector;
 import java.util.Iterator;
 import java.util.Collection;
+import java.util.ArrayList;
 
 
 /**
@@ -58,6 +62,8 @@ import java.util.Collection;
  * @version 0.1
  */
 public class ArgoPDFDialog extends JDialog {
+
+    private static final Logger LOG = Logger.getLogger(ArgoPDFDialog.class);
 
     public static String PDF = ".pdf";
 
@@ -100,6 +106,9 @@ public class ArgoPDFDialog extends JDialog {
      * ArgoPDF dialog constructor
      *
      * @see javax.swing.JDialog#JDialog(Frame, String, boolean);
+     * @param parent
+     * @param title
+     * @param modal
      */
     public ArgoPDFDialog(Frame parent, String title, boolean modal) {
         super(parent, title, modal);
@@ -401,6 +410,94 @@ public class ArgoPDFDialog extends JDialog {
         return tab;
     }
 
+    public static Collection getAllSequenceCollaborationActivityDiagrams(Object parent) {
+        ArrayList returnColl = new ArrayList();
+
+        Vector diagrams = ProjectManager.getManager().getCurrentProject().getDiagrams();
+
+        for(Object obj : diagrams) {
+            if(obj instanceof UMLSequenceDiagram || obj instanceof UMLCollaborationDiagram ||
+               obj instanceof UMLActivityDiagram) {
+                Object owner = ((UMLDiagram)obj).getOwner();
+
+                while(owner != null) {
+                    if(owner.equals(parent)) {
+                        returnColl.add(obj);
+                        break;
+                    } else {
+                        if(owner instanceof UmlPackage || owner instanceof Model) {
+                            break;
+                        } else {
+                            owner = Model.getFacade().getNamespace(owner);
+                        }
+                    }
+                }
+
+            }
+        }
+
+        return returnColl;
+    }
+
+    public static void addSequenceCollaborationActivityDiagrams(TreeNode node, Object parent) {
+/*      if(applicants == null) return;
+
+        for (Object obj : applicants) {
+            if (obj instanceof UMLSequenceDiagram || obj instanceof UMLCollaborationDiagram) {
+                node.add(new TreeNode(obj));
+            }
+        }*/
+
+        if(parent == null) return;
+        Collection diagr = getAllSequenceCollaborationActivityDiagrams(parent);
+
+        for(Object obj : diagr) {
+            node.add(new TreeNode(obj));
+        }
+
+    }
+
+/*    public static void exploreOwnedElements(TreeNode node, Object parent) {
+        if(parent == null) return;
+
+        Collection ownedElem = null;
+        try {
+            ownedElem = Model.getFacade().getOwnedElements(parent);
+        } catch(Exception e) {
+            ownedElem = (new GoModelToCollaboration()).getChildren(parent);
+        }
+
+        for (Object o : ownedElem) {
+            if (!Model.getFacade().isAPackage(o) && !(o instanceof Generalization)) {
+
+                if (o instanceof Collaboration) {
+                    addSequenceCollaborationActivityDiagrams(node, (new GoCollaborationToDiagram()).getChildren(o));
+                    (new GoCollaborationToDiagram()).getDependencies(o);
+                } else if(o instanceof UMLSequenceDiagram || o instanceof UMLCollaborationDiagram) {
+                    node.add(new TreeNode(o));
+                } else {
+                    try {
+                        Collection ownedChildElem = Model.getFacade().getOwnedElements(o);
+
+                        if (ownedChildElem.size() > 0) {
+                            for (Object oo : ownedChildElem) {
+                                if(oo instanceof Collaboration) {
+                                    addSequenceCollaborationActivityDiagrams(node, (new GoCollaborationToDiagram()).getChildren(oo));
+                                } else if(oo instanceof UMLSequenceDiagram || oo instanceof UMLCollaborationDiagram) {
+                                    node.add(new TreeNode(oo));
+                                }
+                            }
+                        }
+
+                    } catch(Exception e) {
+                        LOG.debug(e.getMessage());
+                    }
+                }
+
+            }
+        }
+    }*/
+
     /**
      * Creates tree of the project data, which can be included in the report
      *
@@ -411,30 +508,6 @@ public class ArgoPDFDialog extends JDialog {
         if(this.currentProject == null) {
             this.currentProject = ProjectManager.getManager().getCurrentProject();
         }
-
-/*        try {
-            Object model = currentProject.getModel();
-            Collection allNamespaces = Model.getModelManagementHelper().getAllNamespaces(model);
-            Collection children2 = (new GoModelToElements()).getChildren(ProjectManager.getManager().getCurrentProject().getModel());
-            Collection children3 = (new GoModelToNode()).getChildren(ProjectManager.getManager().getCurrentProject().getModel());
-
-            for(Object el : children2) {
-                if(Model.getFacade().isAPackage(el)) {
-                    String name = Model.getFacade().getName(el);
-                    Collection children22 = (new GoModelToElements()).getChildren(el);
-                    System.out.println("ArgoPDFDialog.createTreeOfContentsArea name = '"+name+"'");
-                } else if (el instanceof UMLClassDiagram) {
-                    String name = Model.getFacade().getName(el);
-                    System.out.println("ArgoPDFDialog.createTreeOfContentsArea name_classD = '"+name+"'");
-                }
-            }
-
-            Collection nodes = Model.getCoreHelper().getAllNodes(model);
-            Collection children = Model.getCoreHelper().getChildren(model);
-            System.out.println("ArgoPDFDialog.createTreeOfContentsArea");
-        } catch(Exception e) {
-
-        }*/
 
         Project currentProject = this.currentProject;
 
@@ -451,6 +524,16 @@ public class ArgoPDFDialog extends JDialog {
             }
         }
         node.add(useCaseFolderNode);
+
+
+        iter = diagrams.iterator();
+        while(iter.hasNext()) {
+            Object el = iter.next();
+            if(el instanceof UMLClassDiagram && currentProject.getModel().equals(((UMLClassDiagram)el).getNamespace())) {
+                node.add(new TreeNode(el));
+            }
+        }
+        addSequenceCollaborationActivityDiagrams(node, currentProject.getModel());
 
         //add packages and its contents to the contents tree
         Collection packages = (new GoModelToElements()).getChildren(currentProject.getModel());

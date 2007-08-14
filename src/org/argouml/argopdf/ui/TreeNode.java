@@ -27,7 +27,6 @@ import org.argouml.model.Model;
 import org.argouml.ui.explorer.rules.GoModelToElements;
 import org.argouml.uml.diagram.static_structure.ui.UMLClassDiagram;
 import org.argouml.kernel.ProjectManager;
-import org.omg.uml.modelmanagement.UmlPackage;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Enumeration;
@@ -59,6 +58,7 @@ public class TreeNode extends DefaultMutableTreeNode {
                     this.add(new TreeNode(el));
                 }
             }
+            ArgoPDFDialog.addSequenceCollaborationActivityDiagrams(this, userObject);
 
             Collection packages = (new GoModelToElements()).getChildren(userObject);
             for(Object el : packages) {
