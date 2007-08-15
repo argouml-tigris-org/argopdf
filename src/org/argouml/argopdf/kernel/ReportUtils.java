@@ -100,9 +100,10 @@ public class ReportUtils {
     public static String getElementName(Object element) {
         String name;
 
-        if(element instanceof UMLUseCaseDiagram || element instanceof UMLClassDiagram ||
-           element instanceof UMLStateDiagram   || element instanceof UMLSequenceDiagram ||
-           element instanceof UMLCollaborationDiagram || element instanceof UMLActivityDiagram) {
+        if(element instanceof UMLUseCaseDiagram       || element instanceof UMLClassDiagram    ||
+           element instanceof UMLStateDiagram         || element instanceof UMLSequenceDiagram ||
+           element instanceof UMLCollaborationDiagram || element instanceof UMLActivityDiagram ||
+           element instanceof UMLDeploymentDiagram) {
             name = ((UMLDiagram)element).getName();
         } else {
             name = Model.getFacade().getName(element);

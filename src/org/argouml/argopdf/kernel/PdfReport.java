@@ -42,6 +42,7 @@ import org.argouml.uml.diagram.static_structure.ui.UMLClassDiagram;
 import org.argouml.uml.diagram.sequence.ui.UMLSequenceDiagram;
 import org.argouml.uml.diagram.collaboration.ui.UMLCollaborationDiagram;
 import org.argouml.uml.diagram.activity.ui.UMLActivityDiagram;
+import org.argouml.uml.diagram.deployment.ui.UMLDeploymentDiagram;
 import org.argouml.model.Model;
 import org.apache.log4j.Logger;
 
@@ -83,7 +84,9 @@ public class PdfReport implements IReport {
      * @return an instance of new <i>Chapter</i> class with appropriate name
      */
     public static Chapter generateNewChapter(String name, boolean underline) {
-        return new Chapter(ReportUtils.generateTitle(name, 0, underline), ++chapterNumber);
+        Chapter chapter = new Chapter(ReportUtils.generateTitle(name, 0, underline), ++chapterNumber);
+        chapter.setBookmarkOpen(false);
+        return chapter;
     }
 
     /**
@@ -130,17 +133,36 @@ public class PdfReport implements IReport {
             processAllClassDiagrams((TreeNode)reportTree.getModel().getRoot(), null);
             processAllSequenceCollaborationActivityDiagrams((TreeNode)reportTree.getModel().getRoot(), null);
             generatePackagesInfo();
+            generateDeploymentInfo();
+
+            System.out.println("PdfReport.generateReport pn = '"+writer.getPageNumber()+"'");
+            System.out.println("PdfReport.generateReport pn = '"+document.getPageNumber()+"'");
+            beforeCloseOperations();
+
 
             document.close();
 
-            return null;
         } catch(OutOfMemoryError ex) {
-            //todo Manage Out of memmory exception
             LOG.debug(ex.getMessage());
+            return Translator.localize("argopdf.outofmemoryerror");
         } finally {
             loadOptions();
         }
+        
         return null;
+    }
+
+    /**
+     * Executes some operations before document will be closed.
+     */
+    private void beforeCloseOperations() {
+        if(document.getPageNumber() == 0) {
+            try {
+                document.add(Chunk.NEWLINE);
+            } catch(DocumentException ex) {
+                LOG.debug(ex.getMessage());
+            }
+        }
     }
 
     /**
@@ -225,7 +247,7 @@ public class PdfReport implements IReport {
                         if(useCaseDiagramNode.isSelected()) {
                             Object useCase = useCaseDiagramNode.getUserObject();
                             if(useCase instanceof UMLUseCaseDiagram) {
-                                UseCasesDiagramHelper.addUseCaseDiagram(document, useCaseChapter, (UMLUseCaseDiagram)useCase);
+                                UseCasesDiagramHelper.addUseCaseDiagram(document, useCaseChapter, (UMLUseCaseDiagram)useCase, generateDiagrams);
                                 addUseCase = true;
                             }
                         }
@@ -265,6 +287,26 @@ public class PdfReport implements IReport {
     }
 
     /**
+     * Generates deployment info which was selected by the user
+     */
+    private void generateDeploymentInfo() {
+        if(reportTree != null) {
+            TreeNode root = (TreeNode)reportTree.getModel().getRoot();
+            if(root.isSelected()) {
+                TreeNode node = (TreeNode)root.getFirstChild();
+
+                while(node != null && node.isSelected()) {
+                    if(node.getUserObject() instanceof UMLDeploymentDiagram) {
+                        DeploymentDiagramHelper.generateDiagramInfo(document, null, (UMLDeploymentDiagram)node.getUserObject(), generateDiagrams);
+                    }
+                    node = (TreeNode)node.getNextSibling();
+                }
+
+            }
+        }
+    }
+
+    /**
      * Processes all class diagrams which are childrens in the content tree for <i>node</i>
      *
      * @param node    root node for class diagrams which will be processed
@@ -277,7 +319,7 @@ public class PdfReport implements IReport {
         while(tNode != null) {
             Object el = tNode.getUserObject();
             if(el instanceof UMLClassDiagram && tNode.isSelected()) {
-                ClassDiagramHelper.generateDiagramInfo(document, section, (UMLClassDiagram)el);
+                ClassDiagramHelper.generateDiagramInfo(document, section, (UMLClassDiagram)el, generateDiagrams);
                 if(section != null) {
                     section.add(Chunk.NEXTPAGE);
                 }
@@ -302,11 +344,11 @@ public class PdfReport implements IReport {
             Object el = tNode.getUserObject();
             if(tNode.isSelected()) {
                 if(el instanceof UMLSequenceDiagram) {
-                    SequenceDiagramHelper.generateDiagramInfo(document, section, (UMLSequenceDiagram)el);
+                    SequenceDiagramHelper.generateDiagramInfo(document, section, (UMLSequenceDiagram)el, generateDiagrams);
                 } else if(el instanceof UMLCollaborationDiagram) {
-                    CollaborationDiagramHelper.generateDiagramInfo(document, section, (UMLCollaborationDiagram)el);
+                    CollaborationDiagramHelper.generateDiagramInfo(document, section, (UMLCollaborationDiagram)el, generateDiagrams);
                 } else if(el instanceof UMLActivityDiagram) {
-                    ActivityDiagramHelper.generateDiagramInfo(document, section, (UMLActivityDiagram)el);
+                    ActivityDiagramHelper.generateDiagramInfo(document, section, (UMLActivityDiagram)el, generateDiagrams);
                 }
             }
             tNode = (TreeNode)tNode.getNextSibling();

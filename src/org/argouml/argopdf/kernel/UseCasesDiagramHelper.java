@@ -91,6 +91,7 @@ public class UseCasesDiagramHelper {
         String aggregation = null;
         if(Model.getFacade().isAAssociationEnd(assosiationEnd)) {
             Object kind = Model.getFacade().getAggregation(assosiationEnd);
+            if(kind == null) return "";
             if (kind.equals(
                             Model.getAggregationKind().getNone())) {
                 aggregation = ActionSetAssociationEndAggregation.NONE_COMMAND;
@@ -112,8 +113,9 @@ public class UseCasesDiagramHelper {
      * @param document current document instance
      * @param chapter  chapter of Use Case diagrams
      * @param diagram  Use Case diagram to add to the report
+     * @param generateDiagrams defines, whether diagram image should be generated
      */
-    public static void addUseCaseDiagram(Document document, Chapter chapter, UMLUseCaseDiagram diagram) {
+    public static void addUseCaseDiagram(Document document, Chapter chapter, UMLUseCaseDiagram diagram, boolean generateDiagrams) {
 
         if(diagram == null) return;
         LOG.debug("Add Use Case diagram: " + diagram.getName());
@@ -124,7 +126,7 @@ public class UseCasesDiagramHelper {
         section.add(Chunk.NEWLINE);
 
         Image im = ReportUtils.makeImageOfDiagram(diagram);
-        if(im != null) {
+        if(im != null && generateDiagrams) {
             ReportUtils.adjustImageSizeToDocumentPageSize(im,  document);
             section.add(new Chunk(im, 0, 0, true));
         }

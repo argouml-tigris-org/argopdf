@@ -75,8 +75,9 @@ public class StateChartDiagramHelper {
      * @param document current document instance
      * @param section  section, to which state chart diagram will be added
      * @param umlClass an instance of <i>UmlClass</i> class
+     * @param generateDiagrams defines, whether diagram image should be generated
      */
-    public static void generateStateChartDiagrams(Document document, Section section, UmlClass umlClass) {
+    public static void generateStateChartDiagrams(Document document, Section section, UmlClass umlClass, boolean generateDiagrams) {
         List diagrams = getStateChartDiagrams(umlClass);
 
         if(diagrams.size() > 0) {
@@ -85,7 +86,7 @@ public class StateChartDiagramHelper {
             for(Object el : diagrams) {
 
                 Image im = ReportUtils.makeImageOfDiagram((ArgoDiagram)el);
-                if(im != null) {
+                if(im != null && generateDiagrams) {
                     if(subSect == null) {
                         subSect = section.addSection("", 0);
                         subSect.setBookmarkTitle(Translator.localize("argopdf.report.diagram.statechart"));

@@ -20,8 +20,9 @@ public class ActivityDiagramHelper {
      * @param document current document instance
      * @param section  an instance of <i>Section</i> class, where diagram info will be situated
      * @param diagram  an instance of <i>UMLActivityDiagram</i> class, which info will be generated
+     * @param generateDiagrams defines, whether diagram image should be generated
      */
-    public static void generateDiagramInfo(Document document, Section section, UMLActivityDiagram diagram) {
+    public static void generateDiagramInfo(Document document, Section section, UMLActivityDiagram diagram, boolean generateDiagrams) {
         if(diagram == null) return;
         LOG.debug("generate info of activity diagram: " + diagram.getName());
 
@@ -35,7 +36,7 @@ public class ActivityDiagramHelper {
         }
 
         Image im = ReportUtils.makeImageOfDiagram(diagram);
-        if(im != null) {
+        if(im != null && generateDiagrams) {
             ReportUtils.adjustImageSizeToDocumentPageSize(im,  document);
             section.add(Chunk.NEWLINE);
             section.add(new Chunk(im, 0, 0, true));

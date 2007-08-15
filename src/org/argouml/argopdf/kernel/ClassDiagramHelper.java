@@ -111,8 +111,9 @@ public class ClassDiagramHelper {
      * @param document current document instance
      * @param section  an instance of <i>Section</i> class, where diagram info will be situated
      * @param diagram  an instance of <i>UMLClassDiagram</i> class, which info will be generated
+     * @param generateDiagrams defines, whether diagram image should be generated
      */
-    public static void generateDiagramInfo(Document document, Section section, UMLClassDiagram diagram) {
+    public static void generateDiagramInfo(Document document, Section section, UMLClassDiagram diagram, boolean generateDiagrams) {
         if(diagram == null) return;
         LOG.debug("generate info of class diagram: " + diagram.getName());
 
@@ -126,7 +127,7 @@ public class ClassDiagramHelper {
         }
 
         Image im = ReportUtils.makeImageOfDiagram(diagram);
-        if(im != null) {
+        if(im != null && generateDiagrams) {
             ReportUtils.adjustImageSizeToDocumentPageSize(im, document);
             section.add(Chunk.NEWLINE);
             section.add(new Chunk(im, 0, 0, true));
@@ -134,7 +135,7 @@ public class ClassDiagramHelper {
         }
 
         generateSummaryInfo(section, diagram);
-        generateDetailedInfo(document, section, diagram);
+        generateDetailedInfo(document, section, diagram, generateDiagrams);
 
         if(addSection) {
             try {
@@ -172,14 +173,15 @@ public class ClassDiagramHelper {
      * @param document current document instance
      * @param section section, to which detailed info block will be added
      * @param diagram current diagarm, which detailed info will be generated
+     * @param generateDiagrams defines, whether diagram image should be generated
      */
-    public static void generateDetailedInfo(Document document, Section section, UMLClassDiagram diagram) {
+    public static void generateDetailedInfo(Document document, Section section, UMLClassDiagram diagram, boolean generateDiagrams) {
         if(diagram == null) return;
 
         ArrayList elements = ClassDiagramHelper.getClassDiagramUmlElements(diagram);
 
         if(elements.size() > 0) {
-            generateClassesDetailedInfo(document, section, diagram, elements);
+            generateClassesDetailedInfo(document, section, diagram, elements, generateDiagrams);
         }
 
     }
@@ -227,8 +229,9 @@ public class ClassDiagramHelper {
      * @param section  section where diagram detailed info will be situated
      * @param diagram  an instance of current class diagram
      * @param elements elements of current class diagram. If null, elements will be collected in the method
+     * @param generateDiagrams defines, whether diagram image should be generated
      */
-    private static void generateClassesDetailedInfo(Document document, Section section, UMLClassDiagram diagram, ArrayList elements) {
+    private static void generateClassesDetailedInfo(Document document, Section section, UMLClassDiagram diagram, ArrayList elements, boolean generateDiagrams) {
         if(elements == null) {
             elements = ClassDiagramHelper.getClassDiagramUmlElements(diagram);
         }
@@ -239,7 +242,7 @@ public class ClassDiagramHelper {
                                                      0);
             for(Object el : elements) {
                 if(Model.getFacade().isAClass(el)) {
-                    generateClassDetailedInfo(document, subSect, (UmlClass)el);
+                    generateClassDetailedInfo(document, subSect, (UmlClass)el, generateDiagrams);
                 } else if(Model.getFacade().isAInterface(el)) {
                     generateInterfaceDetailedInfo(subSect, (Interface)el);
                 } else if(Model.getFacade().isAEnumeration(el)) {
@@ -257,8 +260,9 @@ public class ClassDiagramHelper {
      * @param document current document instance
      * @param section  section where detailed info will be situated
      * @param umlClass an instance of <i>UmlClass</i>
+     * @param generateDiagrams defines, whether diagram image should be generated
      */
-    private static void generateClassDetailedInfo(Document document, Section section, UmlClass umlClass) {
+    private static void generateClassDetailedInfo(Document document, Section section, UmlClass umlClass, boolean generateDiagrams) {
         if(umlClass == null) return;
 
         Section subSect = section.addSection("", 0);
@@ -271,7 +275,7 @@ public class ClassDiagramHelper {
         createClassAttributesInfo(subSect, umlClass);
         createClassOperationsInfo(subSect, umlClass);
         generateRelationshipsInfo(subSect, umlClass);
-        generateStateChartDiagrams(document, subSect, umlClass);
+        generateStateChartDiagrams(document, subSect, umlClass, generateDiagrams);
     }
 
     /**
@@ -403,8 +407,12 @@ public class ClassDiagramHelper {
             for(Object el : attributes) {
                 Attribute attr = (Attribute)el;
 
-                table.addCell(TableUtils.createCell(attr.getName() + " : " +
-                                                    ((DataType)Model.getFacade().getType(attr)).getName()));
+                if(Model.getFacade().getType(attr) != null) {
+                    table.addCell(TableUtils.createCell(attr.getName() + " : " +
+                                                        Model.getFacade().getName(Model.getFacade().getType(attr))));
+                } else {
+                    table.addCell(TableUtils.createCell(attr.getName()));
+                }
                 table.addCell(TableUtils.createCell(ReportUtils.getElementsDocumentation(attr)));
             }
 
@@ -451,8 +459,12 @@ public class ClassDiagramHelper {
                 if(Model.getFacade().isAbstract(op)) {
                     operationFont.setStyle(Font.ITALIC);
                 }
-                if(Model.getFacade().isStatic(op)) {
-                    operationFont.setStyle(Font.UNDERLINE);
+                try {
+                    if(Model.getFacade().isStatic(op)) {
+                        operationFont.setStyle(Font.UNDERLINE);
+                    }
+                } catch(NullPointerException ex) {
+                    LOG.debug("Operation is not static");
                 }
 
                 table.addCell(TableUtils.createCell(operation, 1, null, operationFont));
@@ -574,9 +586,10 @@ public class ClassDiagramHelper {
      * @param document  current document instance
      * @param section   section where relationships info will be situated
      * @param umlClass  an instance of <i>UmlClass</i>
+     * @param generateDiagrams defines, whether diagram image should be generated
      */
-    private static void generateStateChartDiagrams(Document document, Section section, UmlClass umlClass) {
-        StateChartDiagramHelper.generateStateChartDiagrams(document, section, umlClass);
+    private static void generateStateChartDiagrams(Document document, Section section, UmlClass umlClass, boolean generateDiagrams) {
+        StateChartDiagramHelper.generateStateChartDiagrams(document, section, umlClass, generateDiagrams);
     }
 
     /**
