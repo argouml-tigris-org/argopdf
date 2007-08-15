@@ -32,6 +32,7 @@ import org.argouml.uml.diagram.sequence.ui.UMLSequenceDiagram;
 import org.argouml.uml.diagram.collaboration.ui.UMLCollaborationDiagram;
 import org.argouml.uml.diagram.ui.UMLDiagram;
 import org.argouml.uml.diagram.activity.ui.UMLActivityDiagram;
+import org.argouml.uml.diagram.deployment.ui.UMLDeploymentDiagram;
 import org.argouml.uml.UseCases;
 import org.argouml.argopdf.kernel.PdfReport;
 import org.argouml.argopdf.kernel.IReport;
@@ -525,7 +526,6 @@ public class ArgoPDFDialog extends JDialog {
         }
         node.add(useCaseFolderNode);
 
-
         iter = diagrams.iterator();
         while(iter.hasNext()) {
             Object el = iter.next();
@@ -540,6 +540,13 @@ public class ArgoPDFDialog extends JDialog {
         for(Object el : packages) {
             if(Model.getFacade().isAPackage(el)) {
                 node.add(new TreeNode(el));
+            }
+        }
+
+        //add deployment diagrams to the contents tree
+        for(Object o : diagrams) {
+            if(o instanceof UMLDeploymentDiagram) {
+                node.add(new TreeNode(o));
             }
         }
 

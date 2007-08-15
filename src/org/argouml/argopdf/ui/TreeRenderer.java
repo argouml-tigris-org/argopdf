@@ -31,6 +31,7 @@ import org.argouml.uml.diagram.static_structure.ui.UMLClassDiagram;
 import org.argouml.uml.diagram.sequence.ui.UMLSequenceDiagram;
 import org.argouml.uml.diagram.collaboration.ui.UMLCollaborationDiagram;
 import org.argouml.uml.diagram.activity.ui.UMLActivityDiagram;
+import org.argouml.uml.diagram.deployment.ui.UMLDeploymentDiagram;
 import org.argouml.uml.UseCases;
 import org.argouml.i18n.Translator;
 
@@ -87,6 +88,9 @@ public class TreeRenderer extends JPanel implements TreeCellRenderer {
                 icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject);
             } else if(userObject instanceof UMLActivityDiagram) {
                 stringValue = ((UMLActivityDiagram)userObject).getName();
+                icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject);
+            } else if(userObject instanceof UMLDeploymentDiagram) {
+                stringValue = ((UMLDeploymentDiagram)userObject).getName();
                 icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject);
             } else if(Model.getFacade().isAPackage(userObject)) {
                 stringValue = Model.getFacade().getName(userObject);
