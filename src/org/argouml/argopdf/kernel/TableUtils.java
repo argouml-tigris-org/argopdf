@@ -111,7 +111,7 @@ public class TableUtils {
      * @param imageName  standard name of an image, which should be placed in the first cell
      * @return           a table, which contains image in the first cell and text in the second one
      */
-    protected static PdfPCell createCell(String text, String imageName) {
+    public static PdfPCell createCell(String text, String imageName) {
         return createCell(text, 1, null, imageName, null);
     }
 
@@ -123,7 +123,7 @@ public class TableUtils {
      * @param tableWidths array of relative widths of table cells
      * @return            a table, which contains image in the first cell and text in the second one
      */
-    protected static PdfPCell createCell(String text, String imageName, float[] tableWidths) {
+    public static PdfPCell createCell(String text, String imageName, float[] tableWidths) {
         if(tableWidths == null) tableWidths = new float[] {1, 7};
         return createCell(text, 1, null, imageName, null, tableWidths);
     }
@@ -138,7 +138,7 @@ public class TableUtils {
      * @param cellFont  font of a cell text
      * @return cell of a table
      */
-    protected static PdfPCell createCell(String text, int colspan, Color color, String imageName, com.lowagie.text.Font cellFont) {
+    public static PdfPCell createCell(String text, int colspan, Color color, String imageName, com.lowagie.text.Font cellFont) {
         return createCell(text, colspan, color, imageName, cellFont, null);
     }
 
@@ -153,7 +153,7 @@ public class TableUtils {
      * @param cellFont  font of a cell text
      * @return cell of a table
      */
-    protected static PdfPCell createCell(Anchor anchor, int colspan, Color color, String imageName, com.lowagie.text.Font cellFont) {
+    public static PdfPCell createCell(Anchor anchor, int colspan, Color color, String imageName, com.lowagie.text.Font cellFont) {
         return createCell(anchor, colspan, color, imageName, cellFont, null);
     }
 
@@ -168,7 +168,7 @@ public class TableUtils {
      * @param tableWidth array of relative widths of table cells
      * @return cell of a table
      */
-    protected static PdfPCell createCell(String text, int colspan, Color color, String imageName, com.lowagie.text.Font cellFont, float[] tableWidth) {
+    public static PdfPCell createCell(String text, int colspan, Color color, String imageName, com.lowagie.text.Font cellFont, float[] tableWidth) {
         if(tableWidth == null) tableWidth = new float[] {1, 7};
         PdfPCell retCell = new PdfPCell();
         retCell.setColspan(colspan);
@@ -190,7 +190,7 @@ public class TableUtils {
      * @param tableWidth array of relative widths of table cells
      * @return cell of a table
      */
-    protected static PdfPCell createCell(Anchor anchor, int colspan, Color color, String imageName, com.lowagie.text.Font cellFont, float[] tableWidth) {
+    public static PdfPCell createCell(Anchor anchor, int colspan, Color color, String imageName, com.lowagie.text.Font cellFont, float[] tableWidth) {
         if(tableWidth == null) tableWidth = new float[] {1, 7};
         PdfPCell retCell = new PdfPCell();
         retCell.setColspan(colspan);
@@ -206,7 +206,7 @@ public class TableUtils {
      * @param text     text of a cell
      * @return         a cell of a table
      */
-    protected static PdfPCell createCell(String text) {
+    public static PdfPCell createCell(String text) {
         return createCell(text, 1, null, null);
     }
 
@@ -217,7 +217,7 @@ public class TableUtils {
      * @param colspan  colspan of a table
      * @return         a cell of a table
      */
-    protected static PdfPCell createCell(String text, int colspan) {
+    public static PdfPCell createCell(String text, int colspan) {
         return createCell(text, colspan, null, null);
     }
 
@@ -240,7 +240,7 @@ public class TableUtils {
      * @param cellFont font of a cell text
      * @return         a cap cell of a table
      */
-    protected static PdfPCell createHeaderCell(String text, int colspan, com.lowagie.text.Font cellFont) {
+    public static PdfPCell createHeaderCell(String text, int colspan, com.lowagie.text.Font cellFont) {
         return createCell(text, colspan, TableUtils.TABLE_HEADER_COLOR, cellFont);
     }
 
@@ -251,7 +251,7 @@ public class TableUtils {
      * @param text     text of a cell
      * @return         a cap cell of a table
      */
-    protected static PdfPCell createHeaderCellWithFont(String text) {
+    public static PdfPCell createHeaderCellWithFont(String text) {
         return createHeaderCell(text, new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE));
     }
 
@@ -262,7 +262,7 @@ public class TableUtils {
      * @param colspan  colspan of a table
      * @return         a cap cell of a table
      */
-    protected static PdfPCell createHeaderCellWithFont(String text, int colspan) {
+    public static PdfPCell createHeaderCellWithFont(String text, int colspan) {
         return createHeaderCell(text, colspan, new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE));
     }
 
@@ -275,7 +275,7 @@ public class TableUtils {
      * @param cellFont font of a cell text
      * @return         a cell of a table
      */
-    protected static PdfPCell createCell(String text, int colspan, Color color, com.lowagie.text.Font cellFont) {
+    public static PdfPCell createCell(String text, int colspan, Color color, com.lowagie.text.Font cellFont) {
         PdfPCell cell;
         if(cellFont != null) {
             cell= new PdfPCell(new Paragraph(text, cellFont));
@@ -300,7 +300,7 @@ public class TableUtils {
      * @param cellFont font of a cell text
      * @return         a cell of a table
      */
-    protected static PdfPCell createCell(Anchor anchor, int colspan, Color color, com.lowagie.text.Font cellFont) {
+    public static PdfPCell createCell(Anchor anchor, int colspan, Color color, com.lowagie.text.Font cellFont) {
         PdfPCell cell;
         if(cellFont != null) {
             ArrayList chunks = anchor.getChunks();
@@ -327,7 +327,7 @@ public class TableUtils {
      * @param imageName  standard name of an image, which should be placed in the first cell
      * @return           a table, which contains image in the first cell and text in the second one
      */
-    protected static PdfPTable createImageLabelTable(String text, String imageName) {
+    public static PdfPTable createImageLabelTable(String text, String imageName) {
         return createImageLabelTable(text, imageName, null, null);
     }
 
@@ -340,7 +340,7 @@ public class TableUtils {
      * @param cellFont  font of a table text
      * @return a table, which contains image in the first cell and text in the second one
      */
-    protected static PdfPTable createImageLabelTable(String text, String imageName, Color colorName, com.lowagie.text.Font cellFont) {
+    public static PdfPTable createImageLabelTable(String text, String imageName, Color colorName, com.lowagie.text.Font cellFont) {
         return createImageLabelTable(text, null, imageName, colorName, new float[]{1, 7}, cellFont);
     }
 
@@ -358,7 +358,7 @@ public class TableUtils {
      * @return           a table, which contains image in the first cell and text or anchor in the second one.
      *                   Returns null if both parameters: text and anchor are null.
      */
-    protected static PdfPTable createImageLabelTable(String text, Anchor anchor, String imageName, Color colorName, float[] tableWidth, com.lowagie.text.Font cellFont) {
+    public static PdfPTable createImageLabelTable(String text, Anchor anchor, String imageName, Color colorName, float[] tableWidth, com.lowagie.text.Font cellFont) {
         if(text == null && anchor == null) return null;
         try {
             PdfPTable nestedTable = new PdfPTable(2);
@@ -399,7 +399,7 @@ public class TableUtils {
         return null;
     }
 
-    protected static PdfPTable createTable(String[] titles, ArrayList elements, float[] tableWidth) {
+    public static PdfPTable createTable(String[] titles, ArrayList elements, float[] tableWidth) {
         PdfPTable table;
         if(titles != null && titles.length > 0) {
             table = generateTableCap(titles.length);

@@ -21,10 +21,12 @@
 // PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
 // CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-package org.argouml.argopdf.kernel;
+package org.argouml.argopdf.kernel.helpers;
 
 import com.lowagie.text.*;
 import org.argouml.uml.diagram.collaboration.ui.UMLCollaborationDiagram;
+import org.argouml.argopdf.kernel.ReportUtils;
+import org.argouml.argopdf.kernel.PdfReport;
 import org.apache.log4j.Logger;
 
 /**

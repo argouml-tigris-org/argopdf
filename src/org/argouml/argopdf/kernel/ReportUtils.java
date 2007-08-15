@@ -40,6 +40,7 @@ import org.argouml.application.helpers.ResourceLoaderWrapper;
 import org.argouml.i18n.Translator;
 import org.argouml.model.Model;
 import org.argouml.model.Facade;
+import org.argouml.argopdf.kernel.helpers.UseCasesDiagramHelper;
 import org.tigris.gef.base.SaveGraphicsAction;
 import org.apache.log4j.Logger;
 import com.lowagie.text.*;
@@ -346,7 +347,7 @@ public class ReportUtils {
      * @param elem uml element, which modifiers info need to be generated
      * @return an instance of <i>PdfPTable</i> class, which contains modifiers info
      */
-    protected static PdfPTable createModifiersInfo(Object elem) {
+    public static PdfPTable createModifiersInfo(Object elem) {
         PdfPTable table = new PdfPTable(2);
         try {
             table.setWidthPercentage(100);
@@ -408,7 +409,7 @@ public class ReportUtils {
      * @return an instance of <i>Phrase</i> class, with image and its label. Returns empty <i>Phrase</i> if both
      *         parameters: text and anchor are null.
      */
-    protected static Phrase createImageLabelPhrase(String imageName, String text, Anchor anchor, int textDepth) {
+    public static Phrase createImageLabelPhrase(String imageName, String text, Anchor anchor, int textDepth) {
         Phrase phrase = new Phrase();
         if(text == null && anchor == null) return phrase;
 
@@ -451,7 +452,7 @@ public class ReportUtils {
      * @return An instance of <i>PdfPTable</i> class, which contains info of assosiation end.
      *         If <i>assEnd</i> is not an instance of AssociationEnd class, returns null.
      */
-    static PdfPTable generateAssosiatedEndInfo(Object assEnd) {
+    public static PdfPTable generateAssosiatedEndInfo(Object assEnd) {
         if(Model.getFacade().isAAssociationEnd(assEnd)) {
             PdfPTable table = new PdfPTable(2);
             table.setWidthPercentage(100);

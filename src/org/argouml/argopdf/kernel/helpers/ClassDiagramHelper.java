@@ -21,7 +21,7 @@
 // PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
 // CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-package org.argouml.argopdf.kernel;
+package org.argouml.argopdf.kernel.helpers;
 
 import com.lowagie.text.*;
 import com.lowagie.text.Font;
@@ -33,6 +33,10 @@ import org.argouml.uml.ui.foundation.core.ActionSetModelElementVisibility;
 import org.argouml.uml.ui.foundation.core.ActionSetParameterDirectionKind;
 import org.argouml.i18n.Translator;
 import org.argouml.model.Model;
+import org.argouml.argopdf.kernel.ReportUtils;
+import org.argouml.argopdf.kernel.PdfReport;
+import org.argouml.argopdf.kernel.TableUtils;
+import org.argouml.argopdf.kernel.StateChartDiagramHelper;
 import org.apache.log4j.Logger;
 import org.omg.uml.foundation.core.*;
 import org.omg.uml.foundation.core.Enumeration;

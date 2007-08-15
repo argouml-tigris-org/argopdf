@@ -21,7 +21,7 @@
 // PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
 // CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-package org.argouml.argopdf.kernel;
+package org.argouml.argopdf.kernel.helpers;
 
 import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
 import org.argouml.uml.diagram.ui.UMLDiagram;
@@ -29,6 +29,8 @@ import org.argouml.uml.ui.foundation.core.ActionSetModelElementVisibility;
 import org.argouml.uml.ui.foundation.core.ActionSetAssociationEndAggregation;
 import org.argouml.model.Model;
 import org.argouml.i18n.Translator;
+import org.argouml.argopdf.kernel.ReportUtils;
+import org.argouml.argopdf.kernel.TableUtils;
 import org.apache.log4j.Logger;
 
 import java.util.List;

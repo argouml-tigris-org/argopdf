@@ -21,7 +21,7 @@
 // PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF
 // CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT,
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-package org.argouml.argopdf.kernel;
+package org.argouml.argopdf.kernel.helpers;
 
 import org.apache.log4j.Logger;
 import org.omg.uml.modelmanagement.UmlPackage;
