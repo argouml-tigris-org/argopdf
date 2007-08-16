@@ -73,7 +73,7 @@ public class TreeRenderer extends JPanel implements TreeCellRenderer {
         } else {
             if(userObject instanceof UseCases) {
                 stringValue = Translator.localize("argopdf.dialog.tab.general.tree.usecases");
-                icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject); 
+                icon = ResourceLoaderWrapper.getInstance().lookupIcon("Package");
             } else if(userObject instanceof UMLUseCaseDiagram) {
                 stringValue = ((UMLUseCaseDiagram)userObject).getName();
                 icon = ResourceLoaderWrapper.getInstance().lookupIcon(userObject);

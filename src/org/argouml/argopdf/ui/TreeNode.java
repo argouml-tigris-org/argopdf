@@ -29,6 +29,7 @@ import org.argouml.uml.diagram.static_structure.ui.UMLClassDiagram;
 import org.argouml.kernel.ProjectManager;
 
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import java.util.Enumeration;
 import java.util.Collection;
 import java.util.Vector;
@@ -43,6 +44,7 @@ import java.util.Vector;
 public class TreeNode extends DefaultMutableTreeNode {
 
     private boolean isSelected;
+    private boolean isChildChecked;
 
     public TreeNode() {
         this(null);
@@ -79,16 +81,30 @@ public class TreeNode extends DefaultMutableTreeNode {
     public void setSelected(boolean isSelected) {
         this.isSelected = isSelected;
 
-        if (children != null) {
+        if (children != null && !isChildChecked) {
             Enumeration e = children.elements();
             while (e.hasMoreElements()) {
               TreeNode node = (TreeNode) e.nextElement();
               node.setSelected(isSelected);
             }
         }
+        isChildChecked = false;
+        if(getParent() != null && isSelected) {
+            ((TreeNode)getParent()).setChildChecked(isSelected);
+            ((TreeNode)getParent()).setSelected(isSelected);
+//            ((DefaultTreeModel)getModel()).nodeChanged(node.getParent());            
+        }
     }
 
     public boolean isSelected() {
         return isSelected;
+    }
+
+    public void setChildChecked(boolean childChecked) {
+        isChildChecked = childChecked;
+    }
+
+    public boolean isChildChecked() {
+        return isChildChecked;
     }
 }

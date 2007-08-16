@@ -136,11 +136,7 @@ public class PdfReport implements IReport {
             generatePackagesInfo();
             generateDeploymentInfo();
 
-            System.out.println("PdfReport.generateReport pn = '"+writer.getPageNumber()+"'");
-            System.out.println("PdfReport.generateReport pn = '"+document.getPageNumber()+"'");
             beforeCloseOperations();
-
-
             document.close();
 
         } catch(OutOfMemoryError ex) {

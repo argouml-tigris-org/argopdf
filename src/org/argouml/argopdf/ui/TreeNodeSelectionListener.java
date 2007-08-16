@@ -50,12 +50,27 @@ public class TreeNodeSelectionListener extends MouseAdapter {
         TreePath path = tree.getPathForRow(row);
         if (path != null) {
             TreeNode node = (TreeNode)path.getLastPathComponent();
-            boolean isSelected = ! (node.isSelected());
-            node.setSelected(isSelected);
-            ((DefaultTreeModel) tree.getModel()).nodeChanged(node);
-            if (row == 0) {
-              tree.revalidate();
-              tree.repaint();
+            if(node.isChildChecked()) {
+                node.setChildChecked(false);
+                node.setSelected(true);
+                ((DefaultTreeModel) tree.getModel()).nodeChanged(node);
+//                if (row == 0) {
+                  tree.revalidate();
+                  tree.repaint();
+  //              }
+            } else {
+                boolean isSelected = ! (node.isSelected());
+                node.setSelected(isSelected);
+                ((DefaultTreeModel) tree.getModel()).nodeChanged(node);
+                if(isSelected && node.getParent() != null) {
+                    ((TreeNode)node.getParent()).setChildChecked(isSelected);
+                    ((TreeNode)node.getParent()).setSelected(isSelected);
+                    ((DefaultTreeModel) tree.getModel()).nodeChanged(node.getParent());
+                }
+    //            if (row == 0) {
+                  tree.revalidate();
+                  tree.repaint();
+      //          }
             }
         }
     }

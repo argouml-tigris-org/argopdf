@@ -81,7 +81,7 @@ public class ArgoPDFDialog extends JDialog {
     //Field which contains path, where report will be saved
     private JTextField pathField;
     //Check box 'Generate Table of contents'
-    private JCheckBox generateToC;
+    //private JCheckBox generateToC;
     //Check box 'Generate diagrams'
     private JCheckBox generateDiagrams;
     //Check box 'Generate title page'
@@ -259,7 +259,7 @@ public class ArgoPDFDialog extends JDialog {
                 report.setLogoPath(logoPath.getText());
 
                 report.setGenerateTitlePage(generateTitlePage.isSelected());
-                report.setGenerateTableOfContents(generateToC.isSelected());
+                //report.setGenerateTableOfContents(generateToC.isSelected());
                 report.setGenerateDiagrams(generateDiagrams.isSelected());
                 report.setTree(tree);
             }
@@ -284,8 +284,10 @@ public class ArgoPDFDialog extends JDialog {
         optionsPanel.setMaximumSize(new Dimension(DEFAULT_SIZE.width/3, 1000));
         optionsPanel.setMinimumSize(new Dimension(DEFAULT_SIZE.width/3, DEFAULT_SIZE.height));
 
+/*
         generateToC = new JCheckBox(Translator.localize("argopdf.dialog.tab.general.options.checkbox.generate.table.of.contents"), true);
         optionsPanel.add(generateToC);
+*/
 
         generateDiagrams = new JCheckBox(Translator.localize("argopdf.dialog.tab.general.options.checkbox.generate.diagrams"), true);
         optionsPanel.add(generateDiagrams);
