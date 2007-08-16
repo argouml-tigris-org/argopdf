@@ -36,7 +36,6 @@ import org.argouml.model.Model;
 import org.argouml.argopdf.kernel.ReportUtils;
 import org.argouml.argopdf.kernel.PdfReport;
 import org.argouml.argopdf.kernel.TableUtils;
-import org.argouml.argopdf.kernel.StateChartDiagramHelper;
 import org.apache.log4j.Logger;
 import org.omg.uml.foundation.core.*;
 import org.omg.uml.foundation.core.Enumeration;

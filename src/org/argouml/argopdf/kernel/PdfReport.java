@@ -36,7 +36,7 @@ import org.argouml.ui.argopdf.ArgoPDFMenuPlugin;
 import org.argouml.ui.targetmanager.TargetManager;
 import org.argouml.i18n.Translator;
 import org.argouml.argopdf.ui.TreeNode;
-import org.argouml.argopdf.kernel.helpers.DeploymentDiagramHelper;
+import org.argouml.argopdf.kernel.helpers.*;
 import org.argouml.uml.UseCases;
 import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
 import org.argouml.uml.diagram.static_structure.ui.UMLClassDiagram;
