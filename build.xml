@@ -181,6 +181,14 @@ doesn't find it's own XML-libs. You need to set ANT_HOME in your shell.
     <property name="deprecation" value="off"/>
     <property name="developer.lib.dir" value="${argo.build.dir}"/>
 
+    <path id="module.libs">
+      <fileset dir="${module.lib.dir}" includes="**/*.jar"/>
+    </path>
+
+    <!-- Make sure we have a sane env. -->
+    <available file="${argo.build.dir}/argouml.jar" property="argouml-jar-available" />
+    
+    <fail message="ArgoUML jar file is missing. Please build ArgoUML with the package target." unless="argouml-jar-available" />
   </target>
 
   <!-- Note this file can only make Ant display values set in the file correctly, -->
@@ -237,6 +245,7 @@ doesn't find it's own XML-libs. You need to set ANT_HOME in your shell.
            deprecation="${deprecation}"
            optimize="${optimize}">
         <classpath>
+	    <path refid="module.libs" />
             <pathelement location="${argo.build.dir}/argouml.jar"/>
             <pathelement location="${ocl-argo.jar.path}"/>
             <pathelement location="${gef.jar.path}"/>
@@ -275,6 +284,7 @@ doesn't find it's own XML-libs. You need to set ANT_HOME in your shell.
             <fileset dir="${module.build.dir}">
                 <include name="${module.jarfile.name}" />
 	    </fileset>
+    	    <path refid="module.libs" />
             <pathelement location="${argo.build.dir}/argouml.jar"/>
             <pathelement location="${ocl-argo.jar.path}"/>
             <pathelement location="${gef.jar.path}"/>
