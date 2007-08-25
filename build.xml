@@ -266,6 +266,11 @@ doesn't find it's own XML-libs. You need to set ANT_HOME in your shell.
   <target name="package" depends="compile">
     <filter token="version" value="${version}"/>
     <copy file="${manifest.src}" tofile="${module.build.dest}/${manifest}" filtering="on" overwrite="on" />
+
+    <copy todir="${module.build.dest}">
+      <fileset dir="${module.src.dir}" includes="**/i18n/*,**/Images/*" />
+    </copy>
+
     <jar jarfile="${module.jarfile}"
          basedir="${module.build.dest}"
          includes="org/argouml/**"
