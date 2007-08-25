@@ -281,7 +281,7 @@ doesn't find it's own XML-libs. You need to set ANT_HOME in your shell.
   <!-- =================================================================== -->
   <!-- Run ArgoUML from compiled sources                                   -->
   <!-- =================================================================== -->
-  <target name="run" depends="package">
+  <target name="run" depends="install">
     <echo message="--- Executing ${Name} ---"/>
     <java classname="org.argouml.application.Main"
           fork="yes">
