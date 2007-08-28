@@ -1,5 +1,5 @@
 Manifest-Version: 2.0
-Class-Path: argouml.jar; itext-2.0.2.jar;
+Class-Path: argouml.jar itext-2.0.2.jar argopdf.jar
 Created-By: 1.2 (Sun Microsystems Inc.) 
 
 Name: org/argouml/ui/argopdf/ArgoPDFMenuPlugin.class
