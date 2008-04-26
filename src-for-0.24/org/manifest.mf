@@ -1,0 +1,12 @@
+Manifest-Version: 2.0
+Class-Path: argouml.jar itext-2.0.2.jar argopdf.jar
+Created-By: 1.2 (Sun Microsystems Inc.) 
+
+Name: org/argouml/ui/argopdf/ArgoPDFMenuPlugin.class
+Extension-name: module.argopdf.menu.plugins
+Specification-Title: ArgoUML Dynamic Load Module
+Specification-Version: 0.1
+Specification-Vendor: University of California
+Implementation-Vendor: University of California
+Implementation-Version: 0.1
+Implementation-Title: ArgoPDF
