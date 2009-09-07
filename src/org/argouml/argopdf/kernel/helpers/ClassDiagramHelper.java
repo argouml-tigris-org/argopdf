@@ -792,7 +792,8 @@ public class ClassDiagramHelper {
 
             for(Object el : generalizations) {
                 if(Model.getFacade().isAGeneralization(el)) {
-                    Object parent = Model.getFacade().getParent(el);
+                    // FPE 31/08/2009 - getParent() is replaced by getGeneral()
+                    Object parent = Model.getFacade().getGeneral(el);//getParent(el);
                     if(Model.getFacade().isAClass(parent) || Model.getFacade().isAInterface(parent) ||
                        Model.getFacade().isAEnumeration(parent)) {
                         Anchor anchor = ReportUtils.getElementNameWithReference(parent);
@@ -827,7 +828,8 @@ public class ClassDiagramHelper {
 
             for(Object el : specializations) {
                 if(Model.getFacade().isAGeneralization(el)) {
-                    Object child = Model.getFacade().getChild(el);
+                    // FPE 31/08/2009 - getChild() is replaced by getSpecific()
+                    Object child = Model.getFacade().getSpecific(el);//getChild(el);
                     if(Model.getFacade().isAClass(child) || Model.getFacade().isAInterface(child) ||
                        Model.getFacade().isAEnumeration(child)) {
                         Anchor anchor = ReportUtils.getElementNameWithReference(child);

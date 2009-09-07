@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Vector;
+import org.argouml.kernel.Project;
 
 /**
  * Contains helper methods for processing state chart diagrams
@@ -58,7 +59,12 @@ public class StateChartDiagramHelper {
     public static List getStateChartDiagrams(UmlClass umlClass) {
         List stateChartD = new ArrayList();
 
-        Vector diagrams  = ProjectManager.getManager().getCurrentProject().getDiagrams();
+        // fpierre 31/08/2009 - getCurrentProject() is deprecated
+        // use getOpenProjects() instead
+        // TODO manage possible nullpointerexception on getOpenProjects().get(0)
+        //Vector diagrams  = ProjectManager.getManager().getCurrentProject().getDiagrams();
+        Project project = (Project)ProjectManager.getManager().getOpenProjects().get(0);
+        Vector diagrams = new Vector(project.getDiagramList());
         for(Object el : diagrams) {
 
             if(el instanceof UMLStateDiagram && umlClass.equals(((UMLStateDiagram)el).getNamespace())) {

@@ -596,8 +596,9 @@ public class UseCasesDiagramHelper {
 
             try {
                 table.setWidths(new float[]{2f, 6f});
+                // TODO : fpierre : manage this...
 
-                String genName = (String)Model.getFacade().getDiscriminator(generalization);
+                String genName = "";//(String)Model.getFacade().getDiscriminator(generalization);
                 if(genName == null || "".equals(genName)) {
                     genName = Translator.localize("argopdf.report.part.usecase.generalization.table.unnamed.title");
                 }
@@ -606,8 +607,10 @@ public class UseCasesDiagramHelper {
                                                      TableUtils.TABLE_HEADER_COLOR,
                                                      new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE)));
 
-                Object parent = Model.getFacade().getParent(generalization);
-                Object child = Model.getFacade().getChild(generalization);
+                // FPE 31/08/2009 - getParent() is replaced by getGeneral()
+                // FPE 31/08/2009 - getChild() is replaced by getSpecific()
+                Object parent = Model.getFacade().getGeneral(generalization);//getParent(generalization);
+                Object child = Model.getFacade().getSpecific(generalization);//getChild(generalization);
 
                 table.addCell(TableUtils.createCell(Translator.localize("argopdf.report.part.usecase.generalization.table.parent")));
                 table.addCell(TableUtils.createCell(Model.getFacade().getName(parent), ReportUtils.getImageName(parent), new float[]{1, 20}));

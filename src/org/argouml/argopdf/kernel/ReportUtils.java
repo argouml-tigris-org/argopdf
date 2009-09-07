@@ -23,7 +23,6 @@
 // UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 package org.argouml.argopdf.kernel;
 
-import org.argouml.uml.diagram.ArgoDiagram;
 import org.argouml.uml.diagram.deployment.ui.UMLDeploymentDiagram;
 import org.argouml.uml.diagram.activity.ui.UMLActivityDiagram;
 import org.argouml.uml.diagram.collaboration.ui.UMLCollaborationDiagram;
@@ -35,13 +34,15 @@ import org.argouml.uml.diagram.use_case.ui.UMLUseCaseDiagram;
 import org.argouml.uml.ui.SaveGraphicsManager;
 import org.argouml.uml.ui.foundation.core.ActionSetAssociationEndAggregation;
 import org.argouml.ui.targetmanager.TargetManager;
-import org.argouml.configuration.Configuration;
+import org.argouml.uml.diagram.ArgoDiagram;
 import org.argouml.application.helpers.ResourceLoaderWrapper;
+import org.argouml.configuration.Configuration;
 import org.argouml.i18n.Translator;
 import org.argouml.model.Model;
 import org.argouml.model.Facade;
 import org.argouml.argopdf.kernel.helpers.UseCasesDiagramHelper;
 import org.tigris.gef.base.SaveGraphicsAction;
+import org.tigris.gef.base.CmdSaveGraphics;
 import org.apache.log4j.Logger;
 import com.lowagie.text.*;
 import com.lowagie.text.Image;
@@ -75,7 +76,7 @@ public class ReportUtils {
     public static String getImageName(Object umlObject) {
         String imageName = "";
         if(Model.getFacade().isAUseCase(umlObject)) {
-            imageName = "useCase";
+            imageName = "UseCase";
         } else if(Model.getFacade().isAActor(umlObject)) {
             imageName = "Actor";
         } else if(Model.getFacade().isAClass(umlObject)) {
@@ -178,7 +179,9 @@ public class ReportUtils {
     public static Anchor getElementNameWithReference(Object element) {
         String elementName = getElementName(element);
         Anchor anchor = new Anchor(elementName);
-        anchor.setReference("#" + element.getClass() + "_" + element.hashCode());
+
+        //TODO check
+        //anchor.setReference("#" + element.getClass() + "_" + element.hashCode());
 
         return anchor;
     }
@@ -260,11 +263,16 @@ public class ReportUtils {
         TargetManager tm = TargetManager.getInstance();
         tm.setTarget(diagram);
 
-        SaveGraphicsAction cmd = SaveGraphicsManager.getInstance().getSaveActionBySuffix("png");
+        //SaveGraphicsAction cmd = SaveGraphicsManager.getInstance().getSaveActionBySuffix("png");
+        //CmdSaveGraphics sg = SaveGraphicsManager.getInstance().getSaveCommandBySuffix("png");
+        SaveGraphicsAction sg = SaveGraphicsManager.getInstance().getSaveActionBySuffix("png");
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        cmd.setStream(outputStream);
-        cmd.setScale(Configuration.getInteger(SaveGraphicsManager.KEY_GRAPHICS_RESOLUTION, 1));
-        cmd.actionPerformed(null);
+        //cmd.setStream(outputStream);
+        sg.setStream(outputStream);
+        //cmd.setScale(Configuration.getInteger(SaveGraphicsManager.KEY_GRAPHICS_RESOLUTION, 1));
+        sg.setScale(Configuration.getInteger(SaveGraphicsManager.KEY_GRAPHICS_RESOLUTION, 1));
+        //cmd.actionPerformed(null);
+        sg.actionPerformed(null);
 
         Image im = null;
         try {
@@ -325,7 +333,7 @@ public class ReportUtils {
                 values.append(Translator.localize("argopdf.report.root"));
             }
 
-            Object tv = Model.getFacade().getTaggedValue(elem, Facade.DERIVED_TAG);
+            Object tv = Model.getFacade().getTaggedValue(elem, Facade.GENERATED_TAG);
             if (tv != null) {
                 String tag = Model.getFacade().getValueOfTag(tv);
                 if ("true".equals(tag)) {
@@ -499,4 +507,5 @@ public class ReportUtils {
 
         return null;
     }
+
 }

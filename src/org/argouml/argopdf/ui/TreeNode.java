@@ -33,6 +33,7 @@ import javax.swing.tree.DefaultTreeModel;
 import java.util.Enumeration;
 import java.util.Collection;
 import java.util.Vector;
+import org.argouml.kernel.Project;
 
 /**
  * TreeNode is a part of a report contents tree, which is displayed in the contents
@@ -54,7 +55,15 @@ public class TreeNode extends DefaultMutableTreeNode {
         this(userObject, true, false);
 
         if(Model.getFacade().isAPackage(userObject)) {
-            Vector diagrams = ProjectManager.getManager().getCurrentProject().getDiagrams();
+            // fpierre 31/08/2009 - getCurrentProject() is deprecated
+            // use getOpenProjects() instead
+            // TODO manage possible nullpointerexception on getOpenProjects().get(0)
+            // fpierre 31/08/2009 - getDiagrams() is unknown
+            // replaced by getDiagramList() ?
+            //Vector diagrams = ProjectManager.getManager().getCurrentProject().getDiagrams();
+            Project project = (Project)ProjectManager.getManager().getOpenProjects().get(0);
+            Vector diagrams = new Vector(project.getDiagramList());
+
             for(Object el : diagrams) {
                 if (el instanceof UMLClassDiagram && userObject.equals(((UMLClassDiagram)el).getNamespace())) {
                     this.add(new TreeNode(el));

@@ -416,7 +416,12 @@ public class ArgoPDFDialog extends JDialog {
     public static Collection getAllSequenceCollaborationActivityDiagrams(Object parent) {
         ArrayList returnColl = new ArrayList();
 
-        Vector diagrams = ProjectManager.getManager().getCurrentProject().getDiagrams();
+        // fpierre 31/08/2009 - getCurrentProject() is deprecated
+        // use getOpenProjects() instead
+        // TODO manage possible nullpointerexception on getOpenProjects().get(0)
+        //Vector diagrams = ProjectManager.getManager().getCurrentProject().getDiagrams();
+        Project project = (Project)ProjectManager.getManager().getOpenProjects().get(0);
+        Vector diagrams = new Vector(project.getDiagramList());
 
         for(Object obj : diagrams) {
             if(obj instanceof UMLSequenceDiagram || obj instanceof UMLCollaborationDiagram ||
@@ -509,54 +514,62 @@ public class ArgoPDFDialog extends JDialog {
     private JTree createTreeOfContentsArea() {
 
         if(this.currentProject == null) {
-            this.currentProject = ProjectManager.getManager().getCurrentProject();
+            // fpierre 31/08/2009 - getCurrentProject() is deprecated
+            // use getOpenProjects() instead
+            //this.currentProject = ProjectManager.getManager().getCurrentProject();
+            if (ProjectManager.getManager().getOpenProjects().size() > 0)
+                this.currentProject = (Project)ProjectManager.getManager().getOpenProjects().get(0);
         }
 
         Project currentProject = this.currentProject;
 
-        Vector diagrams = currentProject.getDiagrams();
-        Iterator iter = diagrams.iterator();
-        TreeNode node = new TreeNode(currentProject);
+        // fpierre 31/08/2009 - getDiagrams() is unknown
+        // replaced by getDiagramList() ?
+        //Vector diagrams = currentProject.getDiagrams();
+        if (currentProject!=null ) {
+            Vector diagrams = new Vector(currentProject.getDiagramList());
+            Iterator iter = diagrams.iterator();
+            TreeNode node = new TreeNode(currentProject);
 
-        //add use case diagrams to the contents tree
-        TreeNode useCaseFolderNode = new TreeNode(new UseCases());
-        while(iter.hasNext()) {
-            Object diagram = iter.next();
-            if(diagram instanceof UMLUseCaseDiagram) {
-                useCaseFolderNode.add(new TreeNode(diagram));
+            //add use case diagrams to the contents tree
+            TreeNode useCaseFolderNode = new TreeNode(new UseCases());
+            while(iter.hasNext()) {
+                Object diagram = iter.next();
+                if(diagram instanceof UMLUseCaseDiagram) {
+                    useCaseFolderNode.add(new TreeNode(diagram));
+                }
             }
-        }
-        node.add(useCaseFolderNode);
+            node.add(useCaseFolderNode);
 
-        iter = diagrams.iterator();
-        while(iter.hasNext()) {
-            Object el = iter.next();
-            if(el instanceof UMLClassDiagram && currentProject.getModel().equals(((UMLClassDiagram)el).getNamespace())) {
-                node.add(new TreeNode(el));
+            iter = diagrams.iterator();
+            while(iter.hasNext()) {
+                Object el = iter.next();
+                if(el instanceof UMLClassDiagram && currentProject.getModel().equals(((UMLClassDiagram)el).getNamespace())) {
+                    node.add(new TreeNode(el));
+                }
             }
-        }
-        addSequenceCollaborationActivityDiagrams(node, currentProject.getModel());
+            addSequenceCollaborationActivityDiagrams(node, currentProject.getModel());
 
-        //add packages and its contents to the contents tree
-        Collection packages = (new GoModelToElements()).getChildren(currentProject.getModel());
-        for(Object el : packages) {
-            if(Model.getFacade().isAPackage(el)) {
-                node.add(new TreeNode(el));
+            //add packages and its contents to the contents tree
+            Collection packages = (new GoModelToElements()).getChildren(currentProject.getModel());
+            for(Object el : packages) {
+                if(Model.getFacade().isAPackage(el)) {
+                    node.add(new TreeNode(el));
+                }
             }
-        }
 
-        //add deployment diagrams to the contents tree
-        for(Object o : diagrams) {
-            if(o instanceof UMLDeploymentDiagram) {
-                node.add(new TreeNode(o));
+            //add deployment diagrams to the contents tree
+            for(Object o : diagrams) {
+                if(o instanceof UMLDeploymentDiagram) {
+                    node.add(new TreeNode(o));
+                }
             }
+
+            tree = new JTree(node);
+            tree.setCellRenderer(new TreeRenderer());
+            tree.addMouseListener(new TreeNodeSelectionListener(tree));
+            tree.setShowsRootHandles(true);
         }
-
-        tree = new JTree(node);
-        tree.setCellRenderer(new TreeRenderer());
-        tree.addMouseListener(new TreeNodeSelectionListener(tree));
-        tree.setShowsRootHandles(true);
-
         return tree;
     }
 

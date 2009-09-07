@@ -366,9 +366,22 @@ public class TableUtils {
             nestedTable.setWidths(tableWidth);
 
             ImageIcon icon = ResourceLoaderWrapper.lookupIconResource(imageName);
-            Image im = Image.getInstance(icon.getImage(), null);
-            im.setAlignment(Image.ALIGN_LEFT);
-            PdfPCell nestCell_1 = new PdfPCell(im, false);
+            if (icon == null) {
+                if (imageName != null && imageName.length() > 1) {
+                    icon = ResourceLoaderWrapper.lookupIconResource(imageName.substring(0, 1).toUpperCase() + imageName.substring(1));
+                }
+            }
+            Image im = null;
+            if (icon != null) {
+                im = Image.getInstance(icon.getImage(), null);
+                im.setAlignment(Image.ALIGN_LEFT);
+            }
+            PdfPCell nestCell_1 = null;
+            if (im != null) {
+                nestCell_1 = new PdfPCell(im, false);
+            } else {
+                nestCell_1 = new PdfPCell();
+            }
             nestCell_1.setHorizontalAlignment(Element.ALIGN_LEFT);
             nestCell_1.setVerticalAlignment(Element.ALIGN_MIDDLE);
             nestCell_1.setBorder(0);

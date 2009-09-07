@@ -26,7 +26,7 @@ package org.argouml.ui.argopdf;
 import org.argouml.moduleloader.ModuleInterface;
 import org.argouml.ui.cmd.GenericArgoMenuBar;
 import org.argouml.ui.ProjectBrowser;
-import org.argouml.ui.ArgoFrame;
+import org.argouml.util.ArgoFrame;
 import org.apache.log4j.Logger;
 import org.argouml.argopdf.ui.ArgoPDFDialog;
 import org.argouml.kernel.ProjectManager;
@@ -34,6 +34,8 @@ import org.argouml.kernel.ProjectManager;
 import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import org.argouml.i18n.Translator;
+import org.tigris.gef.util.Localizer;
 
 /**
  * This class manages enabling, disabling and identifying the ArgoPDF module
@@ -65,7 +67,6 @@ public class ArgoPDFMenuPlugin implements ModuleInterface, ActionListener {
     public ArgoPDFMenuPlugin() {
         menuItem = new JMenuItem("ArgoPDF");
         menuItem.addActionListener(this);
-
         argoPDFDialog = new ArgoPDFDialog(ArgoFrame.getInstance(), "ArgoPDF", true);
     }
 
