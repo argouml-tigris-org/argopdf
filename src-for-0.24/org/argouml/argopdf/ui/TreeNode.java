@@ -1,4 +1,4 @@
-// $Id: TreeNode.java 62 2007-08-25 19:18:28Z comp_ $
+// $Id$
 // Copyright (c) 2007 The Regents of the University of California. All
 // Rights Reserved. Permission to use, copy, modify, and distribute this
 // software and its documentation without fee, and without a written
